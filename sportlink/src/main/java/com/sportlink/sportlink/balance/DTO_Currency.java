@@ -1,4 +1,4 @@
-package com.sportlink.sportlink.currency;
+package com.sportlink.sportlink.balance;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

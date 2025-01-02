@@ -1,14 +1,18 @@
-package com.sportlink.sportlink.currency;
+package com.sportlink.sportlink.balance;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Entity
 @Data
-public class MultiCurrencyAmount {
+@AllArgsConstructor
+@NoArgsConstructor
+public class Balance {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

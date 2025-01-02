@@ -1,4 +1,4 @@
-package com.sportlink.sportlink.currency;
+package com.sportlink.sportlink.balance;
 
 import com.sportlink.sportlink.account.Account;
 import jakarta.persistence.*;
