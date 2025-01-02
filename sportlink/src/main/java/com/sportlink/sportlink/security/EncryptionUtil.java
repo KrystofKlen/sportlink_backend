@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Bean;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import javax.crypto.Cipher;
@@ -52,5 +54,18 @@ public class EncryptionUtil {
             random.nextBytes(saltBytes);
             return Base64.getEncoder().encodeToString(saltBytes);
         }
+    }
+
+    public static String generateRandomSequence(int length){
+        final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        SecureRandom random = new SecureRandom();
+        StringBuilder code = new StringBuilder(length);
+
+        for (int i = 0; i < length; i++) {
+            int randomIndex = random.nextInt(CHARACTERS.length());
+            code.append(CHARACTERS.charAt(randomIndex));
+        }
+
+        return code.toString();
     }
 }
