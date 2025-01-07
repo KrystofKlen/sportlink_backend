@@ -1,9 +1,8 @@
 package com.sportlink.sportlink;
 
 import com.sportlink.sportlink.location.*;
-import com.sportlink.sportlink.location.verification.VERIFICATION_STRATEGY;
+import com.sportlink.sportlink.location.VERIFICATION_STRATEGY;
 import com.sportlink.sportlink.utils.DTO_Adapter;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -95,7 +94,7 @@ public class LocationServiceTest {
         Location location = mock(Location.class);
         when(locationRepository.findById(locationId)).thenReturn(Optional.of(location));
 
-        Optional<Location> result = locationService.findLocationById(locationId);
+        Optional<DTO_Location> result = locationService.findLocationById(locationId);
 
         assertTrue(result.isPresent());
         assertEquals(location, result.get());
@@ -106,22 +105,24 @@ public class LocationServiceTest {
         Long locationId = 1L;
         when(locationRepository.findById(locationId)).thenReturn(Optional.empty());
 
-        Optional<Location> result = locationService.findLocationById(locationId);
+        Optional<DTO_Location> result = locationService.findLocationById(locationId);
 
         assertFalse(result.isPresent());
     }
 
     @Test
     void testFindNearbyLocations() {
-        GeoCoordinate geoCoordinate = new GeoCoordinate(40.7128, -74.0060);
+        double lon = 40.7128;
+        double lat = -74.0060;
+
         double radius = 10.0;
         List<Location> nearbyLocations = Arrays.asList(mock(Location.class), mock(Location.class));
 
-        when(locationRepository.findNearbyLocations(geoCoordinate, radius)).thenReturn(nearbyLocations);
+        when(locationRepository.findNearbyLocations(lon, lat, radius)).thenReturn(nearbyLocations);
 
-        List<Location> result = locationService.findNearbyLocations(geoCoordinate, radius);
+        List<Location> result = locationService.findNearbyLocations(lon, lat, radius);
 
         assertEquals(2, result.size());
-        verify(locationRepository).findNearbyLocations(geoCoordinate, radius);
+        verify(locationRepository).findNearbyLocations(lon, lat, radius);
     }
 }

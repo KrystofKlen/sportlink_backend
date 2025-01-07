@@ -2,6 +2,7 @@ package com.sportlink.sportlink.voucher;
 
 import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.utils.DTO_Adapter;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -17,6 +18,7 @@ public class VoucherService {
         this.adapter = adapter;
     }
 
+    @Transactional
     public DTO_Voucher saveVoucher(Voucher voucher) {
         voucher.setId(null);
         Voucher savedVoucher = voucherRepository.saveVoucher(voucher);
@@ -29,6 +31,7 @@ public class VoucherService {
     }
 
     // will update only the things that are != null
+    @Transactional
     public Voucher updateVoucher(Voucher voucher) {
 
         Optional<Voucher> existingVoucherOpt = voucherRepository.getVoucher(voucher.getId());
@@ -38,8 +41,14 @@ public class VoucherService {
 
         Voucher existingVoucher = existingVoucherOpt.get();
 
-        if(voucher.getItem() != null) {
-            existingVoucher.setItem(voucher.getItem());
+        if(voucher.getTitle() != null){
+            existingVoucher.setTitle(voucher.getTitle());
+        }
+        if(voucher.getDescription() != null){
+            existingVoucher.setDescription(voucher.getDescription());
+        }
+        if(voucher.getCurrency() != null) {
+            existingVoucher.setCurrency(voucher.getCurrency());
         }
         if(voucher.getPrice() != null) {
             existingVoucher.setPrice(voucher.getPrice());

@@ -1,4 +1,4 @@
-package com.sportlink.sportlink;
+package voucher;
 
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import com.sportlink.sportlink.voucher.*;
@@ -14,7 +14,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class VoucherServiceTest {
+class VoucherServiceUT {
 
     @Mock
     private I_VoucherRepository voucherRepository;
@@ -33,10 +33,8 @@ class VoucherServiceTest {
     @Test
     void saveVoucher_ShouldSaveVoucherAndReturnDTO() {
         Voucher voucher = new Voucher();
-        voucher.setItem(new Item());
         Voucher savedVoucher = new Voucher();
         savedVoucher.setId(1L);
-        savedVoucher.setItem(new Item());
         DTO_Voucher dtoVoucher = new DTO_Voucher();
 
         when(voucherRepository.saveVoucher(any(Voucher.class))).thenReturn(savedVoucher);

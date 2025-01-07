@@ -1,10 +1,12 @@
 package com.sportlink.sportlink.voucher;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
+@Primary
 public class H2_VoucherRepository implements I_VoucherRepository {
 
     private final JPA_VoucherRepository jpaRepository;

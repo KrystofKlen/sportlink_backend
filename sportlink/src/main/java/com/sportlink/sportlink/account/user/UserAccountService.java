@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -12,6 +13,15 @@ public class UserAccountService extends AccountService{
 
     public UserAccountService(I_AccountRepository accountRepository) {
         super(accountRepository);
+    }
+
+    public Optional<UserAccount> getUserAccountByUserId(Long userId){
+        try{
+            UserAccount user = (UserAccount) accountRepository.findById(userId).get();
+            return Optional.of(user);
+        }catch (EntityNotFoundException | NoSuchElementException e){
+            return Optional.empty();
+        }
     }
 
     // Update Account

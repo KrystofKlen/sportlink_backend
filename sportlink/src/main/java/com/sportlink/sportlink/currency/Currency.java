@@ -9,13 +9,7 @@ import lombok.Data;
 public class Currency {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(unique = true, nullable = false)
-    private CURRENCY name;
-
-    private String image;
+    private String name;
 
     @OneToOne(cascade = CascadeType.ALL)
     private Account issuer;

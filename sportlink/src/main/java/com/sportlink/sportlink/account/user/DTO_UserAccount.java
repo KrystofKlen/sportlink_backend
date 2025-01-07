@@ -8,6 +8,7 @@ import java.util.Date;
 @Data
 @AllArgsConstructor
 public class DTO_UserAccount {
+    private Long userId;
     private String username;
     private String firstName;
     private String lastName;

@@ -6,7 +6,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface JPA_Balance_Repository extends JpaRepository<Balance, Long> {
+public interface JPA_Currency_Repository extends JpaRepository<Currency, Long> {
 
     @Query("SELECT c FROM Currency c WHERE c.name = :name")
     Optional<Currency> findByName(@Param("name") CURRENCY name);
