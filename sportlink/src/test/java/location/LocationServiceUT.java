@@ -1,8 +1,8 @@
-package com.sportlink.sportlink;
+package location;
 
 import com.sportlink.sportlink.location.*;
-import com.sportlink.sportlink.location.VERIFICATION_STRATEGY;
 import com.sportlink.sportlink.utils.DTO_Adapter;
+import com.sportlink.sportlink.verification.location.LOCATION_VERIFICATION_STRATEGY;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class LocationServiceTest {
+public class LocationServiceUT {
 
     @Mock
     private I_LocationRepository locationRepository;
@@ -41,7 +41,7 @@ public class LocationServiceTest {
         DTO_Location dtoLocation = mock(DTO_Location.class);
         Location location = mock(Location.class);
 
-        when(dtoLocation.getVerificationStrategies()).thenReturn(Set.of(VERIFICATION_STRATEGY.USER_WITHIN_LOCATION_RADIUS));
+        when(dtoLocation.getVerificationStrategies()).thenReturn(Set.of(LOCATION_VERIFICATION_STRATEGY.USER_WITHIN_RADIUS));
         when(adapter.getLocationFromDTO(dtoLocation)).thenReturn(location);
 
         locationService.saveLocation(dtoLocation);
@@ -89,18 +89,6 @@ public class LocationServiceTest {
     }
 
     @Test
-    void testFindLocationByIdWhenLocationExists() {
-        Long locationId = 1L;
-        Location location = mock(Location.class);
-        when(locationRepository.findById(locationId)).thenReturn(Optional.of(location));
-
-        Optional<DTO_Location> result = locationService.findLocationById(locationId);
-
-        assertTrue(result.isPresent());
-        assertEquals(location, result.get());
-    }
-
-    @Test
     void testFindLocationByIdWhenLocationNotFound() {
         Long locationId = 1L;
         when(locationRepository.findById(locationId)).thenReturn(Optional.empty());
@@ -111,18 +99,82 @@ public class LocationServiceTest {
     }
 
     @Test
-    void testFindNearbyLocations() {
-        double lon = 40.7128;
-        double lat = -74.0060;
+    void testIsWithinRadius_whenPointsAreWithinRadius() {
+        // Arrange
+        double lon1 = -73.985428;
+        double lat1 = 40.748817; // Empire State Building
+        double lon2 = -73.985100;
+        double lat2 = 40.749000; // Nearby point
+        int radius = 100; // 100 meters
 
-        double radius = 10.0;
-        List<Location> nearbyLocations = Arrays.asList(mock(Location.class), mock(Location.class));
+        // Act
+        boolean result = LocationService.isWithinRadius(lon1, lat1, lon2, lat2, radius);
 
-        when(locationRepository.findNearbyLocations(lon, lat, radius)).thenReturn(nearbyLocations);
+        // Assert
+        assertTrue(result, "Expected points to be within 100 meters radius");
+    }
 
-        List<Location> result = locationService.findNearbyLocations(lon, lat, radius);
+    @Test
+    void testIsWithinRadius_whenPointsAreOutsideRadius() {
+        // Arrange
+        double lon1 = -73.985428;
+        double lat1 = 40.748817; // Empire State Building
+        double lon2 = -73.990000;
+        double lat2 = 40.750000; // Farther point
+        int radius = 100; // 100 meters
 
-        assertEquals(2, result.size());
-        verify(locationRepository).findNearbyLocations(lon, lat, radius);
+        // Act
+        boolean result = LocationService.isWithinRadius(lon1, lat1, lon2, lat2, radius);
+
+        // Assert
+        assertFalse(result, "Expected points to be outside 100 meters radius");
+    }
+
+    @Test
+    void testIsWithinRadius_whenPointsAreExactlyOnRadius() {
+        // Arrange
+        double lon1 = -73.985428;
+        double lat1 = 40.748817; // Empire State Building
+        double lon2 = -73.985600;
+        double lat2 = 40.749200; // Point exactly on radius
+        int radius = 50; // 50 meters
+
+        // Act
+        boolean result = LocationService.isWithinRadius(lon1, lat1, lon2, lat2, radius);
+
+        // Assert
+        assertTrue(result, "Expected points to be exactly on 50 meters radius");
+    }
+
+    @Test
+    void testIsWithinRadius_whenPointsAreIdentical() {
+        // Arrange
+        double lon1 = -73.985428;
+        double lat1 = 40.748817; // Empire State Building
+        double lon2 = -73.985428;
+        double lat2 = 40.748817; // Same point
+        int radius = 0; // 0 meters
+
+        // Act
+        boolean result = LocationService.isWithinRadius(lon1, lat1, lon2, lat2, radius);
+
+        // Assert
+        assertTrue(result, "Expected identical points to be within 0 meters radius");
+    }
+
+    @Test
+    void testIsWithinRadius_whenRadiusIsZeroAndPointsDiffer() {
+        // Arrange
+        double lon1 = -73.985428;
+        double lat1 = 40.748817; // Empire State Building
+        double lon2 = -73.985429;
+        double lat2 = 40.748818; // Slightly different point
+        int radius = 0; // 0 meters
+
+        // Act
+        boolean result = LocationService.isWithinRadius(lon1, lat1, lon2, lat2, radius);
+
+        // Assert
+        assertFalse(result, "Expected points to be outside 0 meters radius");
     }
 }

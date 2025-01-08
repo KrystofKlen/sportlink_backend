@@ -14,18 +14,18 @@ import java.util.Optional;
 @Primary
 public class H2_LocationRepository implements I_LocationRepository {
 
-    private final JpaRepository jpaRepository;
+    private final JPA_LocationRepository jpaRepository;
     private final EntityManager entityManager;
 
     @Autowired
-    public H2_LocationRepository(JpaRepository jpaRepository, EntityManager entityManager) {
+    public H2_LocationRepository(JPA_LocationRepository jpaRepository, EntityManager entityManager) {
         this.jpaRepository = jpaRepository;
         this.entityManager = entityManager;
     }
 
     @Override
-    public void save(Location location) {
-        jpaRepository.save(location);
+    public Location save(Location location) {
+        return jpaRepository.save(location);
     }
 
     @Override
@@ -53,15 +53,15 @@ public class H2_LocationRepository implements I_LocationRepository {
     }
 
     @Override
-    public List<Location> findNearbyLocations(GeoCoordinate location, double distance) {
+    public List<Location> findNearbyLocations(double lon, double lat, double deviation) {
         TypedQuery<Location> query = entityManager.createQuery(
                 "SELECT l FROM Location l " +
-                        "WHERE FUNCTION('distance', l.geoCoordinate.latitude, l.geoCoordinate.longitude, :latitude, :longitude) < :distance",
+                        "WHERE abs(l.longitude - :longitude) < :deviation AND abs(l.latitude - :latitude ) < :deviation",
                 Location.class
         );
-        query.setParameter("latitude", location.getLatitude());
-        query.setParameter("longitude", location.getLongitude());
-        query.setParameter("distance", distance);
+        query.setParameter("latitude", lat);
+        query.setParameter("longitude", lon);
+        query.setParameter("deviation", deviation);
         return query.getResultList();
     }
 }

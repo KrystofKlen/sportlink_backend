@@ -1,6 +1,7 @@
 package com.sportlink.sportlink.location;
 
-import com.sportlink.sportlink.location.verification.VERIFICATION_STRATEGY;
+import com.sportlink.sportlink.reward.Reward;
+import com.sportlink.sportlink.verification.location.LOCATION_VERIFICATION_STRATEGY;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,14 +25,24 @@ public class Location {
     private String description;
 
     @ElementCollection
-    private List<String> images;
-
-    @ElementCollection
     private Set<ACTIVITY> activities;
 
-    GeoCoordinate geoCoordinate;
+    double longitude;
+    double latitude;
 
     @ElementCollection
-    private Set<VERIFICATION_STRATEGY> verificationStrategies;
+    private Set<LOCATION_VERIFICATION_STRATEGY> verificationStrategies;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Reward> rewards;
+
+    public Location(String name, String address, String description, Set<ACTIVITY> activities, double longitude, double latitude) {
+        this.name = name;
+        this.address = address;
+        this.description = description;
+        this.activities = activities;
+        this.longitude = longitude;
+        this.latitude = latitude;
+    }
 }
 
