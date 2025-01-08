@@ -3,8 +3,12 @@ package com.sportlink.sportlink.voucher;
 import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -28,6 +32,11 @@ public class VoucherService {
     public Optional<DTO_Voucher> getVoucher(Long voucherId) {
         Optional<Voucher> voucherOptional = voucherRepository.getVoucher(voucherId);
         return voucherOptional.map(adapter::getDTO_Voucher);
+    }
+
+    public Page<DTO_Voucher> getVouchers(int page, int size){
+        Pageable pageable = PageRequest.of(page, size);
+        return voucherRepository.findAllByRandomOrder(pageable).map(adapter::getDTO_Voucher);
     }
 
     // will update only the things that are != null

@@ -1,7 +1,7 @@
 package com.sportlink.sportlink.voucher;
 
 public enum VOUCHER_STATE {
-    NOT_IN_OFFER,
+    EXPIRED,
     IN_OFFER,
     REDEEMED
 }

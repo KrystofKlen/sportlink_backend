@@ -1,7 +1,7 @@
 package verification;
 
-import com.sportlink.sportlink.codes.CodeData;
-import com.sportlink.sportlink.codes.CodesService;
+import com.sportlink.sportlink.location.I_LocationRepository;
+import com.sportlink.sportlink.location.Location;
 import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.verification.I_VerificationStrategy;
 import com.sportlink.sportlink.verification.location.DTO_LocationVerificationRequest;
@@ -14,26 +14,31 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.sportlink.sportlink.verification.location.LOCATION_VERIFICATION_STRATEGY.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 public class LocationVerificationFactoryUT {
 
     @Mock
-    private CodesService codesService;
+    private RedisService redisService;
 
     @Mock
-    private RedisService redisService;
+    private I_LocationRepository locationRepository;
+
+    private Location location;
 
     private LocationVerificationFactory locationVerificationFactory;
     private DTO_LocationVerificationRequest dtoRequest;
 
     @BeforeEach
     void setUp() {
+        location = new Location();
         MockitoAnnotations.openMocks(this);
-        locationVerificationFactory = new LocationVerificationFactory(codesService, redisService);
+        locationVerificationFactory = new LocationVerificationFactory(redisService, locationRepository);
 
         // Initialize DTO_LocationVerificationRequest
         dtoRequest = new DTO_LocationVerificationRequest();
@@ -55,7 +60,7 @@ public class LocationVerificationFactoryUT {
         // Setup: USER_WITHIN_RADIUS
         List<I_VerificationStrategy> strategies = locationVerificationFactory.getVerificationStrategyList(
                 dtoRequest,
-                List.of(USER_WITHIN_RADIUS)
+                Set.of(USER_WITHIN_RADIUS)
         );
 
         List<Boolean> actualResults = verifyStrategies(strategies);
@@ -70,7 +75,7 @@ public class LocationVerificationFactoryUT {
         // Setup: USER_WITHIN_RADIUS
         List<I_VerificationStrategy> strategies = locationVerificationFactory.getVerificationStrategyList(
                 dtoRequest,
-                List.of(USER_WITHIN_RADIUS)
+                Set.of(USER_WITHIN_RADIUS)
         );
 
         List<Boolean> actualResults = verifyStrategies(strategies);
@@ -81,14 +86,12 @@ public class LocationVerificationFactoryUT {
 
     @Test
     void testUserScanningCodeVerification() {
-        // Setup: USER_SCANNING_CODE
-        CodeData mockCodeData = new CodeData();
-        mockCodeData.setLocationId(1L);
-        when(codesService.findByCode(dtoRequest.getCode())).thenReturn(Optional.of(mockCodeData));
+        location.setId(1L);
+        when(locationRepository.findByCode(anyString())).thenReturn( Optional.of(location) );
 
         List<I_VerificationStrategy> strategies = locationVerificationFactory.getVerificationStrategyList(
                 dtoRequest,
-                List.of(USER_SCANNING_CODE)
+                Set.of(USER_SCANNING_CODE)
         );
 
         List<Boolean> actualResults = verifyStrategies(strategies);
@@ -99,14 +102,12 @@ public class LocationVerificationFactoryUT {
 
     @Test
     void testUserScanningCodeVerification_shouldFail() {
-        // Setup: USER_SCANNING_CODE
-        CodeData mockCodeData = new CodeData();
-        mockCodeData.setLocationId(3L);
-        when(codesService.findByCode(dtoRequest.getCode())).thenReturn(Optional.of(mockCodeData));
+        location.setId(6L);
+        when(locationRepository.findByCode(anyString())).thenReturn( Optional.of(location) );
 
         List<I_VerificationStrategy> strategies = locationVerificationFactory.getVerificationStrategyList(
                 dtoRequest,
-                List.of(USER_SCANNING_CODE)
+                Set.of(USER_SCANNING_CODE)
         );
 
         List<Boolean> actualResults = verifyStrategies(strategies);
@@ -116,50 +117,13 @@ public class LocationVerificationFactoryUT {
     }
 
     @Test
-    void testLocationScanningCodeVerification() {
-        // Setup: LOCATION_SCANNING_CODE
-        CodeData mockCodeData = new CodeData();
-        mockCodeData.setUserId(2L);
-        when(codesService.findByCode(dtoRequest.getCode())).thenReturn(Optional.of(mockCodeData));
-
-        List<I_VerificationStrategy> strategies = locationVerificationFactory.getVerificationStrategyList(
-                dtoRequest,
-                List.of(LOCATION_SCANNING_CODE)
-        );
-
-        List<Boolean> actualResults = verifyStrategies(strategies);
-        List<Boolean> expectedResults = List.of(true); // Assuming user IDs match.
-
-        assertEquals(expectedResults, actualResults, "LOCATION_SCANNING_CODE strategy verification failed.");
-    }
-
-    @Test
-    void testLocationScanningCodeVerification_shouldFail() {
-        // Setup: LOCATION_SCANNING_CODE
-        CodeData mockCodeData = new CodeData();
-        mockCodeData.setUserId(3L);
-        when(codesService.findByCode(dtoRequest.getCode())).thenReturn(Optional.of(mockCodeData));
-
-        List<I_VerificationStrategy> strategies = locationVerificationFactory.getVerificationStrategyList(
-                dtoRequest,
-                List.of(LOCATION_SCANNING_CODE)
-        );
-
-        List<Boolean> actualResults = verifyStrategies(strategies);
-        List<Boolean> expectedResults = List.of(false); // Assuming user IDs match.
-
-        assertEquals(expectedResults, actualResults, "LOCATION_SCANNING_CODE strategy verification failed.");
-    }
-
-    @Test
     void testUserScanOneTimeCodeVerification() {
         // Setup: USER_SCAN_ONETIME_CODE
-        String jsonData = "{\"locationId\":1, \"userId\":2}";
-        when(redisService.getValue(dtoRequest.getCode())).thenReturn(jsonData);
+        when(redisService.getValue(dtoRequest.getCode())).thenReturn("2");
 
         List<I_VerificationStrategy> strategies = locationVerificationFactory.getVerificationStrategyList(
                 dtoRequest,
-                List.of(USER_SCAN_ONETIME_CODE)
+                Set.of(USER_SCAN_ONETIME_CODE)
         );
 
         List<Boolean> actualResults = verifyStrategies(strategies);
@@ -174,59 +138,9 @@ public class LocationVerificationFactoryUT {
         when(redisService.getValue(dtoRequest.getCode())).thenReturn(null);
 
         try {
-            locationVerificationFactory.getVerificationStrategyList(dtoRequest,List.of(USER_SCAN_ONETIME_CODE));
+            locationVerificationFactory.getVerificationStrategyList(dtoRequest,Set.of(USER_SCAN_ONETIME_CODE));
         } catch (EntityNotFoundException ex) {
             assertEquals(EntityNotFoundException.class, ex.getClass());
         }
-    }
-
-    @Test
-    void testAllConditions() {
-        // Setup all strategies
-        CodeData mockCodeData = new CodeData();
-        mockCodeData.setLocationId(1L);
-        mockCodeData.setUserId(2L);
-        when(codesService.findByCode(dtoRequest.getCode())).thenReturn(Optional.of(mockCodeData));
-        when(redisService.getValue(dtoRequest.getCode())).thenReturn("{\"locationId\":1, \"userId\":2}");
-
-        List<I_VerificationStrategy> strategies = locationVerificationFactory.getVerificationStrategyList(
-                dtoRequest,
-                List.of(
-                        USER_WITHIN_RADIUS,
-                        USER_SCANNING_CODE,
-                        LOCATION_SCANNING_CODE,
-                        USER_SCAN_ONETIME_CODE
-                )
-        );
-
-        List<Boolean> actualResults = verifyStrategies(strategies);
-        List<Boolean> expectedResults = List.of(true, true, true, true);
-
-        assertEquals(expectedResults, actualResults, "All strategies verification failed.");
-    }
-
-    @Test
-    void testAllConditions_shouldFail() {
-        // Simulate failure in USER_SCAN_ONETIME_CODE
-        when(redisService.getValue(dtoRequest.getCode())).thenReturn("{\"locationId\":3, \"userId\":2}");
-        CodeData mockCodeData = new CodeData();
-        mockCodeData.setLocationId(1L);
-        mockCodeData.setUserId(2L);
-        when(codesService.findByCode(dtoRequest.getCode())).thenReturn(Optional.of(mockCodeData));
-
-        List<I_VerificationStrategy> strategies = locationVerificationFactory.getVerificationStrategyList(
-                dtoRequest,
-                List.of(
-                        USER_WITHIN_RADIUS,
-                        USER_SCANNING_CODE,
-                        LOCATION_SCANNING_CODE,
-                        USER_SCAN_ONETIME_CODE
-                )
-        );
-
-        List<Boolean> actualResults = verifyStrategies(strategies);
-        List<Boolean> expectedResults = List.of(true, true, true, false);
-
-        assertEquals(expectedResults, actualResults, "Failure in USER_SCAN_ONETIME_CODE was not detected.");
     }
 }

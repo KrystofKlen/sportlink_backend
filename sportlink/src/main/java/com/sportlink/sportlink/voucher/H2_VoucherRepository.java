@@ -1,6 +1,8 @@
 package com.sportlink.sportlink.voucher;
 
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -28,5 +30,10 @@ public class H2_VoucherRepository implements I_VoucherRepository {
     @Override
     public void deleteVoucher(Long voucherId) {
         jpaRepository.deleteById(voucherId);
+    }
+
+    @Override
+    public Page<Voucher> findAllByRandomOrder(Pageable pageable) {
+        return jpaRepository.findAllByRandomOrder(pageable);
     }
 }

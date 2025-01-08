@@ -53,26 +53,26 @@ public class RewardService {
     }
 
     // only those with not null value updated
-    public DTO_Reward update( DTO_Reward dto ) {
+    public DTO_Reward update(DTO_Reward dto) {
 
         Reward existing = rewardRepository.getReward(dto.getId()).orElseThrow();
 
-        if(dto.getAmount() != null){
+        if (dto.getAmount() != null) {
             existing.setAmount(dto.getAmount());
         }
-        if(dto.getRewardConditions() != null){
+        if (dto.getRewardConditions() != null) {
             existing.setRewardConditions(dto.getRewardConditions());
         }
-        if(dto.getTotalClaimsLimit() != null){
+        if (dto.getTotalClaimsLimit() != null) {
             existing.setMonthClaimsLimit(dto.getMonthClaimsLimit());
         }
-        if(dto.getMonthClaimsLimit() != null){
+        if (dto.getMonthClaimsLimit() != null) {
             existing.setMonthClaimsLimit(dto.getMonthClaimsLimit());
         }
-        if(dto.getIntervals() != null){
+        if (dto.getIntervals() != null) {
             existing.setIntervals(dto.getIntervals());
         }
-        if(dto.getMinMinutesSpent() != null){
+        if (dto.getMinMinutesSpent() != null) {
             existing.setMinMinuteSpend(dto.getMinMinutesSpent());
         }
 
@@ -99,7 +99,7 @@ public class RewardService {
         return true;
     }
 
-    public List<DTO_Reward> addNewRewardForLocation( @Valid  DTO_Reward dto, long locationId){
+    public List<DTO_Reward> addNewRewardForLocation(@Valid DTO_Reward dto, long locationId) {
         Location location = locationRepository.findById(locationId).orElseThrow();
         // Check if the LocationReward already exists for the given location ID
         Currency currency = currencyRepository.findCurrencyByName(dto.getCurrency()).orElseThrow();

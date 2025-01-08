@@ -6,8 +6,8 @@ import com.sportlink.sportlink.account.AccountService;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.account.user.DTO_UserAccount;
 import com.sportlink.sportlink.account.user.UserAccountService;
-import com.sportlink.sportlink.inventory.I_InventoryRepository;
-import com.sportlink.sportlink.inventory.UserInventory;
+import com.sportlink.sportlink.inventory.user.I_UserInventoryRepository;
+import com.sportlink.sportlink.inventory.user.UserInventory;
 import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.registration.DTO_CompanyRegistration;
 import com.sportlink.sportlink.registration.DTO_UserRegistration;
@@ -32,7 +32,7 @@ public class UserAccountRegistrationIT {
     private UserAccountService userAccountService;
 
     @Autowired
-    private I_InventoryRepository inventoryRepository;
+    private I_UserInventoryRepository inventoryRepository;
 
     @Autowired
     private RedisService redisService;

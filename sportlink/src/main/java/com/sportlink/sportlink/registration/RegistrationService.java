@@ -6,8 +6,8 @@ import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.account.user.DTO_UserAccount;
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.account.user.UserAccountService;
-import com.sportlink.sportlink.inventory.I_InventoryRepository;
-import com.sportlink.sportlink.inventory.UserInventory;
+import com.sportlink.sportlink.inventory.user.I_UserInventoryRepository;
+import com.sportlink.sportlink.inventory.user.UserInventory;
 import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.utils.PayloadParser;
@@ -27,7 +27,7 @@ public class RegistrationService {
 
     @Autowired
     private final RedisService redisService;
-    private final I_InventoryRepository inventoryInventory;
+    private final I_UserInventoryRepository inventoryInventory;
     private static final int OPT_EXP_MIN = 2;
     @Autowired
     private AccountService accountService;
@@ -38,7 +38,7 @@ public class RegistrationService {
             EncryptionUtil.SaltGenerator saltGenerator,
             PasswordEncoder passwordEncoder,
             RedisService redisService,
-            I_InventoryRepository inventoryInventory) {
+            I_UserInventoryRepository inventoryInventory) {
         this.userAccountService = userAccountService;
         this.saltGenerator = saltGenerator;
         this.passwordEncoder = passwordEncoder;

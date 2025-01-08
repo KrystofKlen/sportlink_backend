@@ -1,15 +1,13 @@
 package com.sportlink.sportlink.reward;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Primary
 @Repository
-public class H2_RewardRepository implements I_RewardRepository{
+public class H2_RewardRepository implements I_RewardRepository {
 
     private final JPA_RewardRepository jpaRewardRepository;
 

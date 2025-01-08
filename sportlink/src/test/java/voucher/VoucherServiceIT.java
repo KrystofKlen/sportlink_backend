@@ -43,14 +43,14 @@ public class VoucherServiceIT {
                 currency,
                 10,
                 LocalDate.now().plusDays(30),
-                VOUCHER_STATE.NOT_IN_OFFER,
+                VOUCHER_STATE.IN_OFFER,
                 "ABCD"
         );
         voucher.setIssuer(account);
 
         voucher.setCurrency(currency);
         voucher.setPrice(10);
-        voucher.setState(VOUCHER_STATE.NOT_IN_OFFER);
+        voucher.setState(VOUCHER_STATE.IN_OFFER);
         voucher.setExpirationDate(LocalDate.now().plusDays(30));
         voucher.setCode("ABC123");
     }
