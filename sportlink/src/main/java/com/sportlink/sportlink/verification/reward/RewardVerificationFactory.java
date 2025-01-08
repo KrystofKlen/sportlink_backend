@@ -1,7 +1,5 @@
 package com.sportlink.sportlink.verification.reward;
 
-import com.sportlink.sportlink.claim.ClaimService;
-import com.sportlink.sportlink.claim.DTO_Claim;
 import com.sportlink.sportlink.reward.DTO_Reward;
 import com.sportlink.sportlink.verification.I_VerificationStrategy;
 import com.sportlink.sportlink.verification.reward.conditions.ClaimLimit;
@@ -12,7 +10,6 @@ import com.sportlink.sportlink.visit.DTO_Visit;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,13 +17,7 @@ import java.util.List;
 @Service
 public class RewardVerificationFactory {
 
-    private final ClaimService claimService;
-
-    public RewardVerificationFactory(ClaimService claimService) {
-        this.claimService = claimService;
-    }
-
-    public List<I_VerificationStrategy> createConditionsList(DTO_Visit dtoVisit, long userId, DTO_Reward reward) {
+    public List<I_VerificationStrategy> createConditionsList(DTO_Visit dtoVisit, DTO_Reward reward) {
 
         List<I_VerificationStrategy> list = new ArrayList<I_VerificationStrategy>();
 
@@ -35,25 +26,13 @@ public class RewardVerificationFactory {
                 case TOTAL_CLAIMS_LIMIT -> {
                     ComparisonContext comparisonContext = new ComparisonContext();
                     comparisonContext.setBoundary(reward.getTotalClaimsLimit());
-                    int claims = claimService.getClaimsForReward(reward.getId()).size();
-                    comparisonContext.setGiven(claims);
+                    comparisonContext.setGiven(reward.getTotalClaimsCount());
                     list.add(new ClaimLimit(comparisonContext));
                 }
                 case MONTHLY_CLAIMS_LIMIT -> {
                     ComparisonContext comparisonContext = new ComparisonContext();
                     comparisonContext.setBoundary(reward.getMonthClaimsLimit());
-                    List<DTO_Claim> claimsTotal = claimService.getClaimsForReward(reward.getId());
-                    int claims = claimService.getThisMonth(claimsTotal).size();
-                    comparisonContext.setGiven(claims);
-                    list.add(new ClaimLimit(comparisonContext));
-                }
-                case DAILY_USER__CLAIMS_LIMIT -> {
-                    ComparisonContext comparisonContext = new ComparisonContext();
-                    comparisonContext.setBoundary(reward.getDayLimitPerUser());
-                    List<DTO_Claim> claims = claimService.getClaimsForReward(reward.getId());
-                    claims = claimService.getThisMonth(claims);
-                    claims = claimService.getUsersClaims(userId, claims);
-                    comparisonContext.setGiven(claims.size());
+                    comparisonContext.setGiven(reward.getMonthClaimsCount());
                     list.add(new ClaimLimit(comparisonContext));
                 }
                 case CLAIM_TIME_RANGE -> {

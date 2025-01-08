@@ -5,7 +5,6 @@ import com.sportlink.sportlink.verification.reward.conditions.ClaimTimeRange;
 import com.sportlink.sportlink.verification.reward.contexts.IntervalContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -13,7 +12,8 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 public class ClaimRangeUT {
