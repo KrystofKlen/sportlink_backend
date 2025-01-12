@@ -1,57 +1,48 @@
 package com.sportlink.sportlink.utils;
 
-import com.sportlink.sportlink.voucher.DTO_Item;
-import com.sportlink.sportlink.voucher.Item;
-import com.sportlink.sportlink.account.CompanyAccount;
-import com.sportlink.sportlink.account.DTO_CompanyAccount;
-import com.sportlink.sportlink.account.DTO_UserAccount;
-import com.sportlink.sportlink.account.UserAccount;
+import com.sportlink.sportlink.account.company.CompanyAccount;
+import com.sportlink.sportlink.account.company.DTO_CompanyAccount;
+import com.sportlink.sportlink.account.user.DTO_UserAccount;
+import com.sportlink.sportlink.account.user.UserAccount;
+import com.sportlink.sportlink.comment.DTO_Review;
+import com.sportlink.sportlink.comment.Review;
 import com.sportlink.sportlink.currency.Currency;
-import com.sportlink.sportlink.currency.DTO_Currency;
-import com.sportlink.sportlink.currency.DTO_MultiCurrencyAmmount;
-import com.sportlink.sportlink.currency.MultiCurrencyAmount;
 import com.sportlink.sportlink.location.DTO_Location;
 import com.sportlink.sportlink.location.Location;
+import com.sportlink.sportlink.reward.DTO_Reward;
+import com.sportlink.sportlink.reward.Reward;
+import com.sportlink.sportlink.transfer.DTO_Transfer;
+import com.sportlink.sportlink.transfer.Transfer;
+import com.sportlink.sportlink.visit.DTO_Visit;
+import com.sportlink.sportlink.visit.Visit;
+import com.sportlink.sportlink.voucher.DTO_Voucher;
+import com.sportlink.sportlink.voucher.Voucher;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class DTO_Adapter {
 
     public DTO_UserAccount getDTO_UserAccount(UserAccount user) {
         return new DTO_UserAccount(
+                user.getId(),
                 user.getUsername(),
                 user.getFirstName(),
                 user.getLastName(),
                 user.getDateOfBirth(),
-                user.getProfilePic()
+                user.getProfilePicUUID()
         );
     }
 
-    public DTO_Currency getDTO_Currency(Currency currency) {
-        return new DTO_Currency(
-                currency.getName(),
-                currency.getImage()
-        );
-    }
+    public Map<String, Integer> getDTO_Balance(Map<Currency, Integer> balance) {
+        Map<String, Integer> dto = new HashMap<>();
 
-    public DTO_Item getDTO_Item(Item item) {
-        return new DTO_Item(
-                item.getId(),
-                item.getName(),
-                item.getDescription(),
-                item.getImages()
-        );
-    }
-
-    public DTO_MultiCurrencyAmmount getDTO_MultiCurrencyAmmount(MultiCurrencyAmount multiCurrencyAmount) {
-        HashMap<DTO_Currency, Integer> amounts = new HashMap<>();
-
-        multiCurrencyAmount.getAmounts().forEach((currency, amount) -> {
-            amounts.put(getDTO_Currency(currency), amount.intValue());
+        balance.forEach((k, v) -> {
+            dto.put(k.getName(), v);
         });
-        return new DTO_MultiCurrencyAmmount(amounts);
+        return dto;
     }
 
     public DTO_CompanyAccount getDTO_CompanyAccount(CompanyAccount companyAccount) {
@@ -61,7 +52,7 @@ public class DTO_Adapter {
                 companyAccount.getPhone(),
                 companyAccount.getContactEmail(),
                 companyAccount.getWebsiteUrl(),
-                companyAccount.getImage()
+                companyAccount.getProfilePicUUID()
         );
     }
 
@@ -71,7 +62,82 @@ public class DTO_Adapter {
                 location.getName(),
                 location.getAddress(),
                 location.getDescription(),
-                location.getImages()
+                location.getActivities(),
+                location.getLongitude(),
+                location.getLatitude(),
+                location.getVerificationStrategies(),
+                location.getImagesUUID()
+        );
+    }
+
+    public Location getLocationFromDTO(DTO_Location dtoLocation) {
+        return new Location(
+                dtoLocation.getId(),
+                dtoLocation.getName(),
+                dtoLocation.getAddress(),
+                dtoLocation.getDescription(),
+                dtoLocation.getActivities(),
+                dtoLocation.getLongitude(),
+                dtoLocation.getLatitude(),
+                dtoLocation.getVerificationStrategies()
+        );
+    }
+
+    public DTO_Voucher getDTO_Voucher(Voucher voucher) {
+        return new DTO_Voucher(
+                voucher.getId(),
+                voucher.getTitle(),
+                voucher.getDescription(),
+                voucher.getCurrency().getName(),
+                voucher.getPrice(),
+                voucher.getExpirationDate(),
+                voucher.getState(),
+                "",
+                voucher.getImagesUUID()
+        );
+    }
+
+    public DTO_Visit getDTO_Visit(Visit visit) {
+        return new DTO_Visit(
+                visit.getVisitId(),
+                getDTO_Location(visit.getLocation()),
+                visit.getTimestampStart(),
+                visit.getTimestampStop(),
+                visit.getState()
+        );
+    }
+
+    public DTO_Transfer getDTO_Transfer(Transfer transfer) {
+        return new DTO_Transfer(
+                transfer.getId(),
+                getDTO_UserAccount(transfer.getReceiver()),
+                transfer.getTimestamp(),
+                transfer.getCurrency().getName(),
+                transfer.getAmount()
+        );
+    }
+
+    public DTO_Reward getDTO_Reward(Reward reward) {
+        return new DTO_Reward(
+                reward.getId(),
+                reward.getCurrency().getName(),
+                reward.getAmount(),
+                reward.getRewardConditions(),
+                reward.getTotalClaimsLimit(),
+                reward.getTotalClaimsCount(),
+                reward.getMonthClaimsLimit(),
+                reward.getMonthClaimsCount(),
+                reward.getIntervals(),
+                reward.getMinMinuteSpend()
+        );
+    }
+
+    public DTO_Review getDTO_Review(Review review) {
+        return new DTO_Review(
+                review.getId(),
+                review.getLocation().getId(),
+                review.getUserPosting().getUsername(),
+                review.getContent()
         );
     }
 

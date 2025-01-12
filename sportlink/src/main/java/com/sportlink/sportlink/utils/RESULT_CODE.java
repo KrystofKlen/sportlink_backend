@@ -1,0 +1,11 @@
+package com.sportlink.sportlink.utils;
+
+public enum RESULT_CODE {
+    LOCATION_NOT_VERIFIED,
+    LAST_VISIT_MUST_BE_CLOSED,
+    LAST_VISIT_MUST_BE_OPEN,
+    VISIT_OPENED,
+    VISIT_CLOSED,
+    INSUFFICIENT_FUNDS,
+    REDEEMED
+}
