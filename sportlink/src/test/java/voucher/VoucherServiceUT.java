@@ -1,5 +1,9 @@
 package voucher;
 
+import com.sportlink.sportlink.account.I_AccountRepository;
+import com.sportlink.sportlink.currency.I_CurrencyRepository;
+import com.sportlink.sportlink.media.ImgService;
+import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import com.sportlink.sportlink.voucher.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,7 +12,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,10 +23,22 @@ class VoucherServiceUT {
     private I_VoucherRepository voucherRepository;
 
     @Mock
+    private I_CurrencyRepository currencyRepository;
+
+    @Mock
+    private I_AccountRepository accountRepository;
+
+    @Mock
     private DTO_Adapter adapter;
+
+    @Mock
+    private ImgService imgService;
 
     @InjectMocks
     private VoucherService voucherService;
+
+    @InjectMocks
+    private EncryptionUtil encryptionUtil;
 
     @BeforeEach
     void setUp() {
@@ -31,36 +46,19 @@ class VoucherServiceUT {
     }
 
     @Test
-    void saveVoucher_ShouldSaveVoucherAndReturnDTO() {
-        Voucher voucher = new Voucher();
-        Voucher savedVoucher = new Voucher();
-        savedVoucher.setId(1L);
-        DTO_Voucher dtoVoucher = new DTO_Voucher();
-
-        when(voucherRepository.saveVoucher(any(Voucher.class))).thenReturn(savedVoucher);
-        when(adapter.getDTO_Voucher(savedVoucher)).thenReturn(dtoVoucher);
-
-        DTO_Voucher result = voucherService.saveVoucher(voucher);
-
-        assertNotNull(result);
-        verify(voucherRepository).saveVoucher(any(Voucher.class));
-        verify(adapter).getDTO_Voucher(savedVoucher);
-    }
-
-    @Test
     void getVoucher_ShouldReturnDTO_WhenVoucherExists() {
         Long voucherId = 1L;
         Voucher voucher = new Voucher();
-        voucher.setId(voucherId);
         DTO_Voucher dtoVoucher = new DTO_Voucher();
 
-        when(voucherRepository.getVoucher(voucherId)).thenReturn(Optional.of(voucher));
+        when(voucherRepository.findById(voucherId)).thenReturn(Optional.of(voucher));
         when(adapter.getDTO_Voucher(voucher)).thenReturn(dtoVoucher);
 
         Optional<DTO_Voucher> result = voucherService.getVoucher(voucherId);
 
         assertTrue(result.isPresent());
-        verify(voucherRepository).getVoucher(voucherId);
+        assertEquals(dtoVoucher, result.get());
+        verify(voucherRepository).findById(voucherId);
         verify(adapter).getDTO_Voucher(voucher);
     }
 
@@ -68,62 +66,44 @@ class VoucherServiceUT {
     void getVoucher_ShouldReturnEmpty_WhenVoucherDoesNotExist() {
         Long voucherId = 1L;
 
-        when(voucherRepository.getVoucher(voucherId)).thenReturn(Optional.empty());
+        when(voucherRepository.findById(voucherId)).thenReturn(Optional.empty());
 
         Optional<DTO_Voucher> result = voucherService.getVoucher(voucherId);
 
         assertTrue(result.isEmpty());
-        verify(voucherRepository).getVoucher(voucherId);
+        verify(voucherRepository).findById(voucherId);
         verifyNoInteractions(adapter);
     }
 
     @Test
-    void updateVoucher_ShouldUpdateAndReturnVoucher() {
-        Voucher existingVoucher = new Voucher();
-        existingVoucher.setId(1L);
-        existingVoucher.setExpirationDate(LocalDate.now());
-
-        Voucher updatedVoucher = new Voucher();
-        updatedVoucher.setId(1L);
-        LocalDate today = LocalDate.now();
-        LocalDate newExpirationDate = today.plusDays(10); // Add 10 days to the current date
-        updatedVoucher.setExpirationDate(newExpirationDate);
-
-
-        when(voucherRepository.getVoucher(1L)).thenReturn(Optional.of(existingVoucher));
-        when(voucherRepository.saveVoucher(existingVoucher)).thenReturn(updatedVoucher);
-
-        Voucher result = voucherService.updateVoucher(updatedVoucher);
-
-        assertEquals(newExpirationDate, result.getExpirationDate());
-        verify(voucherRepository).getVoucher(1L);
-        verify(voucherRepository).saveVoucher(existingVoucher);
-    }
-
-    @Test
-    void updateVoucher_ShouldThrowException_WhenVoucherDoesNotExist() {
-        Voucher inputVoucher = new Voucher();
-        inputVoucher.setId(99L);
-
-        when(voucherRepository.getVoucher(99L)).thenReturn(Optional.empty());
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            voucherService.updateVoucher(inputVoucher);
-        });
-
-        assertEquals("Voucher not found with ID: 99", exception.getMessage());
-        verify(voucherRepository).getVoucher(99L);
-        verify(voucherRepository, never()).saveVoucher(any());
-    }
-
-    @Test
-    void deleteVoucher_ShouldDeleteVoucher() {
+    void deleteVoucher_ShouldDeleteVoucher_WhenExistsAndNotRedeemed() {
         Long voucherId = 1L;
+        Voucher voucher = new Voucher();
+        voucher.setState(VOUCHER_STATE.IN_OFFER);
 
-        doNothing().when(voucherRepository).deleteVoucher(voucherId);
+        when(voucherRepository.findById(voucherId)).thenReturn(Optional.of(voucher));
+        doNothing().when(voucherRepository).deleteById(voucherId);
 
         voucherService.deleteVoucher(voucherId);
 
-        verify(voucherRepository).deleteVoucher(voucherId);
+        verify(voucherRepository).findById(voucherId);
+        verify(voucherRepository).deleteById(voucherId);
+    }
+
+    @Test
+    void deleteVoucher_ShouldThrowException_WhenVoucherIsRedeemed() {
+        Long voucherId = 1L;
+        Voucher voucher = new Voucher();
+        voucher.setState(VOUCHER_STATE.REDEEMED);
+
+        when(voucherRepository.findById(voucherId)).thenReturn(Optional.of(voucher));
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            voucherService.deleteVoucher(voucherId);
+        });
+
+        assertEquals("Voucher state is REDEEMED", exception.getMessage());
+        verify(voucherRepository).findById(voucherId);
+        verify(voucherRepository, never()).deleteById(voucherId);
     }
 }

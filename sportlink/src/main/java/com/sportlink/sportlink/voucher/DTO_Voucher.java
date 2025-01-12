@@ -8,21 +8,23 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class DTO_Voucher {
-    private long id;
+    private Long id;
     @NotNull
     private String title;
     @NotNull
     private String description;
+
     @NotNull
     private String currency;
     @NotNull
     @Size(min = 1)
-    private int price;
+    private Integer price;
     @NotNull
     @Future
     private LocalDate expirationDate;
@@ -30,4 +32,6 @@ public class DTO_Voucher {
     private VOUCHER_STATE state;
     @NotNull
     private String code;
+
+    private List<String> imagesUUIDs;
 }

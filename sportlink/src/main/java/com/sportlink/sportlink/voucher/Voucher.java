@@ -1,6 +1,7 @@
 package com.sportlink.sportlink.voucher;
 
 import com.sportlink.sportlink.account.Account;
+import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.currency.Currency;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Data
@@ -23,7 +25,7 @@ public class Voucher {
 
     private String description;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Account issuer;
 
     @ManyToOne(cascade = CascadeType.ALL)
@@ -33,7 +35,14 @@ public class Voucher {
 
     private LocalDate expirationDate;
 
+    @Enumerated(EnumType.STRING)
     private VOUCHER_STATE state;
 
     private String code;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<String> imagesUUID;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private UserAccount buyer;
 }
