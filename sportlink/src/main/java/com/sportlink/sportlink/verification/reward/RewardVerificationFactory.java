@@ -21,6 +21,10 @@ public class RewardVerificationFactory {
 
         List<I_VerificationStrategy> list = new ArrayList<I_VerificationStrategy>();
 
+        if (reward.getRewardConditions() == null) {
+            return list;
+        }
+
         reward.getRewardConditions().forEach(condition -> {
             switch (condition) {
                 case TOTAL_CLAIMS_LIMIT -> {

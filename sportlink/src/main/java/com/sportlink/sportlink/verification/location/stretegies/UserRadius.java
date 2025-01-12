@@ -1,5 +1,6 @@
 package com.sportlink.sportlink.verification.location.stretegies;
 
+import com.sportlink.sportlink.location.LocationService;
 import com.sportlink.sportlink.verification.I_VerificationStrategy;
 import com.sportlink.sportlink.verification.location.contexts.GeoContext;
 import lombok.AllArgsConstructor;
@@ -16,13 +17,6 @@ public class UserRadius implements I_VerificationStrategy {
         double latU = geoContext.getUserLat();
         double lonU = geoContext.getUserLon();
 
-        double dLat = latL - latU;
-        double dLon = lonL - lonU;
-
-        // Euclidean distance formula (ignores Earth's curvature)
-        double distance = Math.sqrt(Math.pow(dLat, 2) + Math.pow(dLon, 2));
-
-        // Check if the distance is within the specified radius
-        return distance <= geoContext.getMaxRadius();
+        return LocationService.isWithinRadius(lonL, latL, lonU, latU, (int) geoContext.getMaxRadius());
     }
 }

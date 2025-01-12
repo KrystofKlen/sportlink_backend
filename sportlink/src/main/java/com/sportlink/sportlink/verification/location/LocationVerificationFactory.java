@@ -1,6 +1,5 @@
 package com.sportlink.sportlink.verification.location;
 
-import com.sportlink.sportlink.codes.CodesService;
 import com.sportlink.sportlink.location.I_LocationRepository;
 import com.sportlink.sportlink.location.Location;
 import com.sportlink.sportlink.redis.RedisService;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @Service

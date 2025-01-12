@@ -44,8 +44,8 @@ public class LocationVerificationFactoryUT {
         dtoRequest = new DTO_LocationVerificationRequest();
         dtoRequest.setLocationLatitude(50.0);
         dtoRequest.setLocationLongitude(8.0);
-        dtoRequest.setUserLatitude(50.1);
-        dtoRequest.setUserLongitude(8.1);
+        dtoRequest.setUserLatitude(50.00001);
+        dtoRequest.setUserLongitude(8.00001);
         dtoRequest.setCode("test-code");
         dtoRequest.setLocationId(1L);
         dtoRequest.setUserId(2L);

@@ -29,9 +29,9 @@ public class UserRadiusUT {
         // Set up mock behavior
         when(geoContext.getLocationLat()).thenReturn(10.0);
         when(geoContext.getLocationLon()).thenReturn(20.0);
-        when(geoContext.getUserLat()).thenReturn(10.1);
-        when(geoContext.getUserLon()).thenReturn(20.1);
-        when(geoContext.getMaxRadius()).thenReturn(0.2);
+        when(geoContext.getUserLat()).thenReturn(10.000001);
+        when(geoContext.getUserLon()).thenReturn(20.000001);
+        when(geoContext.getMaxRadius()).thenReturn(5.0);
 
         // Verify that the distance is within the specified radius
         boolean result = userRadius.verify();
@@ -46,7 +46,7 @@ public class UserRadiusUT {
         when(geoContext.getLocationLon()).thenReturn(20.0);
         when(geoContext.getUserLat()).thenReturn(10.1);
         when(geoContext.getUserLon()).thenReturn(20.1);
-        when(geoContext.getMaxRadius()).thenReturn(0.05); // smaller radius
+        when(geoContext.getMaxRadius()).thenReturn(5.0);
 
         // Verify that the distance is outside the specified radius
         boolean result = userRadius.verify();
