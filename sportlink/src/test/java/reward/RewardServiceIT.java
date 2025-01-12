@@ -4,20 +4,21 @@ import com.sportlink.sportlink.SportlinkApplication;
 import com.sportlink.sportlink.account.Account;
 import com.sportlink.sportlink.currency.Currency;
 import com.sportlink.sportlink.currency.I_CurrencyRepository;
-import com.sportlink.sportlink.location.Location;
-import com.sportlink.sportlink.reward.*;
+import com.sportlink.sportlink.reward.DTO_Reward;
+import com.sportlink.sportlink.reward.I_RewardRepository;
+import com.sportlink.sportlink.reward.Reward;
+import com.sportlink.sportlink.reward.RewardService;
 import com.sportlink.sportlink.utils.DTO_Adapter;
-import com.sportlink.sportlink.visit.DTO_Visit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(classes = SportlinkApplication.class)
 public class RewardServiceIT {
@@ -42,7 +43,7 @@ public class RewardServiceIT {
         Currency currency = new Currency();
         currency.setName("ABC");
         currency.setIssuer(account);
-        currencyRepository.saveCurrency(currency);
+        currencyRepository.save(currency);
 
         reward = new DTO_Reward();
         reward.setAmount(30);
@@ -63,7 +64,7 @@ public class RewardServiceIT {
         DTO_Reward savedReward = rewardService.save(reward);
 
         // Fetch the reward from the database
-        Optional<Reward> foundReward = rewardRepository.getReward(savedReward.getId());
+        Optional<Reward> foundReward = rewardRepository.findById(savedReward.getId());
 
         // Assert that it was saved correctly
         assertTrue(foundReward.isPresent());
@@ -82,7 +83,7 @@ public class RewardServiceIT {
         DTO_Reward updatedReward = rewardService.update(savedReward);
 
         // Fetch the updated reward from the database
-        Optional<Reward> foundReward = rewardRepository.getReward(updatedReward.getId());
+        Optional<Reward> foundReward = rewardRepository.findById(updatedReward.getId());
 
         // Assert that the reward was updated correctly
         assertTrue(foundReward.isPresent());

@@ -2,19 +2,17 @@ package com.sportlink.sportlink.reward;
 
 import com.sportlink.sportlink.currency.Currency;
 import com.sportlink.sportlink.currency.I_CurrencyRepository;
-import com.sportlink.sportlink.location.I_LocationRepository;
-import com.sportlink.sportlink.location.Location;
-import com.sportlink.sportlink.location.LocationService;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import com.sportlink.sportlink.verification.I_VerificationStrategy;
 import com.sportlink.sportlink.verification.reward.RewardVerificationFactory;
 import com.sportlink.sportlink.visit.DTO_Visit;
+import com.sportlink.sportlink.visit.Visit;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class RewardService {
@@ -23,14 +21,12 @@ public class RewardService {
     private final DTO_Adapter adapter;
     private final RewardVerificationFactory verificationFactory;
     private final I_CurrencyRepository currencyRepository;
-    private final I_LocationRepository locationRepository;
 
-    public RewardService(I_RewardRepository rewardRepository, DTO_Adapter adapter, RewardVerificationFactory verificationFactory, I_CurrencyRepository currencyRepository, LocationService locationService, I_LocationRepository locationRepository) {
+    public RewardService(I_RewardRepository rewardRepository, DTO_Adapter adapter, RewardVerificationFactory verificationFactory, I_CurrencyRepository currencyRepository) {
         this.rewardRepository = rewardRepository;
         this.adapter = adapter;
         this.verificationFactory = verificationFactory;
         this.currencyRepository = currencyRepository;
-        this.locationRepository = locationRepository;
     }
 
     public DTO_Reward save(@Valid DTO_Reward dto) {
@@ -55,7 +51,7 @@ public class RewardService {
     // only those with not null value updated
     public DTO_Reward update(DTO_Reward dto) {
 
-        Reward existing = rewardRepository.getReward(dto.getId()).orElseThrow();
+        Reward existing = rewardRepository.findById(dto.getId()).orElseThrow();
 
         if (dto.getAmount() != null) {
             existing.setAmount(dto.getAmount());
@@ -79,14 +75,8 @@ public class RewardService {
         return adapter.getDTO_Reward(rewardRepository.save(existing));
     }
 
-    public List<DTO_Reward> getRewardsForLocation(Long locationId) {
-        Location location = locationRepository.findById(locationId).orElseThrow();
-        return location.getRewards()
-                .stream().map(adapter::getDTO_Reward).collect(Collectors.toList());
-    }
-
     public Optional<Reward> getRewardById(Long id) {
-        return rewardRepository.getReward(id);
+        return rewardRepository.findById(id);
     }
 
     public boolean verifyConditions(DTO_Visit visit, DTO_Reward claimedReward) {
@@ -99,26 +89,18 @@ public class RewardService {
         return true;
     }
 
-    public List<DTO_Reward> addNewRewardForLocation(@Valid DTO_Reward dto, long locationId) {
-        Location location = locationRepository.findById(locationId).orElseThrow();
-        // Check if the LocationReward already exists for the given location ID
-        Currency currency = currencyRepository.findCurrencyByName(dto.getCurrency()).orElseThrow();
-        Reward reward = new Reward(
-                null,
-                dto.getRewardConditions(),
-                currency,
-                dto.getAmount(),
-                dto.getTotalClaimsLimit(),
-                dto.getTotalClaimsCount(),
-                dto.getMonthClaimsLimit(),
-                dto.getMonthClaimsCount(),
-                dto.getIntervals(),
-                dto.getMinMinutesSpent()
-        );
-        reward.setRewardConditions(dto.getRewardConditions());
-
-        location.getRewards().add(reward);
-        locationRepository.save(location);
-        return location.getRewards().stream().map(adapter::getDTO_Reward).collect(Collectors.toList());
+    public List<Reward> getApprovedRewards(List<Reward> rewards, Visit visit) {
+        DTO_Visit dtoVisit = adapter.getDTO_Visit(visit);
+        List<Reward> approvedRewards = new ArrayList<>();
+        rewards.forEach(r -> {
+            DTO_Reward dto = adapter.getDTO_Reward(r);
+            boolean verified = verifyConditions(dtoVisit, dto);
+            if (verified) {
+                r.setTotalClaimsCount(dto.getTotalClaimsCount() + 1);
+                r.setMonthClaimsCount(dto.getMonthClaimsCount() + 1);
+                approvedRewards.add(r);
+            }
+        });
+        return approvedRewards;
     }
 }
