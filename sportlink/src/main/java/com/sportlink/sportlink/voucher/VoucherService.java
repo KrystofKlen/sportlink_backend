@@ -5,7 +5,7 @@ import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.currency.Currency;
 import com.sportlink.sportlink.currency.I_CurrencyRepository;
-import com.sportlink.sportlink.media.ImgService;
+import com.sportlink.sportlink.utils.ImgService;
 import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.transfer.I_TransferRepository;
 import com.sportlink.sportlink.transfer.Transfer;

@@ -2,7 +2,7 @@ package voucher;
 
 import com.sportlink.sportlink.account.I_AccountRepository;
 import com.sportlink.sportlink.currency.I_CurrencyRepository;
-import com.sportlink.sportlink.media.ImgService;
+import com.sportlink.sportlink.utils.ImgService;
 import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import com.sportlink.sportlink.voucher.*;

@@ -2,7 +2,7 @@ package com.sportlink.sportlink.voucher;
 
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.account.user.UserAccount;
-import com.sportlink.sportlink.media.ImgService;
+import com.sportlink.sportlink.utils.ImgService;
 import com.sportlink.sportlink.utils.RESULT_CODE;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.Resource;
