@@ -25,4 +25,6 @@ public class DTO_CompanyRegistration {
     private String contactEmail;
     @NotNull
     private String websiteUrl;
+    @NotNull
+    private String currencyName;
 }

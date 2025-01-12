@@ -6,50 +6,33 @@ import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.account.user.DTO_UserAccount;
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.account.user.UserAccountService;
-import com.sportlink.sportlink.inventory.user.I_UserInventoryRepository;
-import com.sportlink.sportlink.inventory.user.UserInventory;
+import com.sportlink.sportlink.currency.Currency;
+import com.sportlink.sportlink.currency.I_CurrencyRepository;
 import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.utils.PayloadParser;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class RegistrationService {
 
     private final UserAccountService userAccountService;
     private final EncryptionUtil.SaltGenerator saltGenerator;
     private final PasswordEncoder passwordEncoder;
-
-    @Autowired
+    private final I_CurrencyRepository currencyRepository;
     private final RedisService redisService;
-    private final I_UserInventoryRepository inventoryInventory;
-    private static final int OPT_EXP_MIN = 2;
-    @Autowired
-    private AccountService accountService;
-
-
-    public RegistrationService(
-            UserAccountService userAccountService,
-            EncryptionUtil.SaltGenerator saltGenerator,
-            PasswordEncoder passwordEncoder,
-            RedisService redisService,
-            I_UserInventoryRepository inventoryInventory) {
-        this.userAccountService = userAccountService;
-        this.saltGenerator = saltGenerator;
-        this.passwordEncoder = passwordEncoder;
-        this.redisService = redisService;
-        this.inventoryInventory = inventoryInventory;
-    }
+    private final AccountService accountService;
 
     @Transactional
     public String startRegistration(DTO_UserRegistration registrationData) {
 
-        if (!approveEmailAndUsername(registrationData.getLoginEmail(), registrationData.getUsername())) {
+        if (!approveUniqueValues(registrationData.getLoginEmail(), registrationData.getUsername())) {
             throw new IllegalStateException("User account already exists");
         }
 
@@ -64,15 +47,14 @@ public class RegistrationService {
 
         String payload = PayloadParser.parseObjectToJson(registrationData);
 
-        redisService.saveValueWithExpiration(registrationData.getLoginEmail(), otp, OPT_EXP_MIN);
-        redisService.saveValueWithExpiration(registrationData.getUsername(), payload, OPT_EXP_MIN);
+        redisService.saveValueWithExpiration(registrationData.getLoginEmail(), otp, 2);
+        redisService.saveValueWithExpiration(registrationData.getUsername(), payload, 2);
 
-        // return OTP
         return otp;
     }
 
     @Transactional
-    public UserInventory completeRegistration(String username, String otp) {
+    public void completeRegistration(String username, String otp) {
 
         // retrieve from redis
         String payload = redisService.getValue(username);
@@ -93,19 +75,13 @@ public class RegistrationService {
                 userRegistration.getLastName(),
                 userRegistration.getDateOfBirth());
 
-        // set up inventory
-        UserInventory userInventory = new UserInventory();
-        userInventory.setOwner(userAccount);
-
-        // store inventory
-        UserInventory inventory = inventoryInventory.save(userInventory);
-        return userInventory;
+        accountService.save(userAccount);
     }
 
     @Transactional
-    public void requestCompanyRegistration(DTO_CompanyRegistration registrationData) {
+    public Long requestCompanyRegistration(DTO_CompanyRegistration registrationData) {
 
-        if (!approveEmailAndUsername(registrationData.getLoginEmail(), registrationData.getUsername())) {
+        if (!approveUniqueValues(registrationData.getLoginEmail(), registrationData.getUsername(), registrationData.getCurrencyName())) {
             throw new IllegalStateException("User account already exists");
         }
 
@@ -122,17 +98,31 @@ public class RegistrationService {
                 registrationData.getAddress(),
                 registrationData.getPhone(),
                 registrationData.getContactEmail(),
-                registrationData.getWebsiteUrl(),
-                false
+                registrationData.getWebsiteUrl()
         );
         // save
-        Account account = accountService.save(companyAccount);
+        Account saved = accountService.save(companyAccount);
+        return saved.getId();
     }
 
-    private boolean approveEmailAndUsername(String email, String username) {
+    private boolean approveUniqueValues(String email, String username, String currency) {
         // check if username and email are free
         Optional<DTO_UserAccount> sameEmailUser = userAccountService.findByEmail(email);
         Optional<DTO_UserAccount> sameUsernameUser = userAccountService.findByUsername(username);
+        Optional<Currency> sameCurrency = currencyRepository.findCurrencyByName(currency);
+
+        boolean emailFree = sameEmailUser.isEmpty() && redisService.getValue(email) == null;
+        boolean usernameFree = sameUsernameUser.isEmpty() && redisService.getValue(username) == null;
+        boolean currencyFree = sameCurrency.isEmpty() && redisService.getValue(currency) == null;
+
+        return emailFree && usernameFree && currencyFree;
+    }
+
+    private boolean approveUniqueValues(String email, String username) {
+        // check if username and email are free
+        Optional<DTO_UserAccount> sameEmailUser = userAccountService.findByEmail(email);
+        Optional<DTO_UserAccount> sameUsernameUser = userAccountService.findByUsername(username);
+
         boolean emailFree = sameEmailUser.isEmpty() && redisService.getValue(email) == null;
         boolean usernameFree = sameUsernameUser.isEmpty() && redisService.getValue(username) == null;
 

@@ -2,7 +2,6 @@ package registration;
 
 import com.sportlink.sportlink.account.user.DTO_UserAccount;
 import com.sportlink.sportlink.account.user.UserAccountService;
-import com.sportlink.sportlink.inventory.user.I_UserInventoryRepository;
 import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.registration.DTO_UserRegistration;
 import com.sportlink.sportlink.registration.RegistrationService;
@@ -16,8 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 public class RegistrationServiceUT {
@@ -32,9 +31,6 @@ public class RegistrationServiceUT {
 
     @Mock
     private RedisService redisService;
-
-    @Mock
-    private I_UserInventoryRepository inventoryInventory;
 
     @InjectMocks
     private RegistrationService registrationService;

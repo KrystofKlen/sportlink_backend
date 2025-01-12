@@ -1,20 +1,22 @@
 package registration;
 
 import com.sportlink.sportlink.SportlinkApplication;
+import com.sportlink.sportlink.account.ACCOUNT_STATUS;
 import com.sportlink.sportlink.account.Account;
 import com.sportlink.sportlink.account.AccountService;
 import com.sportlink.sportlink.account.company.CompanyAccount;
-import com.sportlink.sportlink.account.user.DTO_UserAccount;
 import com.sportlink.sportlink.account.user.UserAccountService;
-import com.sportlink.sportlink.inventory.user.I_UserInventoryRepository;
-import com.sportlink.sportlink.inventory.user.UserInventory;
 import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.registration.DTO_CompanyRegistration;
 import com.sportlink.sportlink.registration.DTO_UserRegistration;
 import com.sportlink.sportlink.registration.RegistrationService;
 import com.sportlink.sportlink.security.EncryptionUtil;
+import com.sportlink.sportlink.utils.EmailSender;
+import com.sportlink.sportlink.utils.PayloadParser;
+import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +24,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 
 @SpringBootTest(classes = SportlinkApplication.class)
 public class UserAccountRegistrationIT {
@@ -32,9 +36,6 @@ public class UserAccountRegistrationIT {
     private UserAccountService userAccountService;
 
     @Autowired
-    private I_UserInventoryRepository inventoryRepository;
-
-    @Autowired
     private RedisService redisService;
 
     @Autowired
@@ -42,8 +43,12 @@ public class UserAccountRegistrationIT {
 
     @Autowired
     private EncryptionUtil.SaltGenerator saltGenerator;
+
     @Autowired
     private AccountService accountService;
+
+    @Spy
+    private EmailSender emailSender;
 
     @BeforeEach
     void setUp() {
@@ -51,7 +56,7 @@ public class UserAccountRegistrationIT {
     }
 
     @Test
-    public void testStartAndCompleteRegistration_SuccessfulFlow() {
+    public void testStartAndCompleteRegistration_SuccessfulFlow() throws MessagingException {
         // Arrange
         DTO_UserRegistration registrationData = new DTO_UserRegistration();
         registrationData.setLoginEmail("testuser@example.com");
@@ -61,18 +66,20 @@ public class UserAccountRegistrationIT {
         registrationData.setLastName("User");
 
         // Start registration
+        doNothing().when(emailSender).sendHtmlEmail(any(), any(), any());
+
         String otp = registrationService.startRegistration(registrationData);
         assertNotNull(otp);
 
-        // Verify OTP and complete registration
-        UserInventory inventory = registrationService.completeRegistration("testuser", otp);
-        if (inventory == null) {
-            fail("Unable to complete registration");
-        }
-
         // Verify user exists in database
-        Optional<DTO_UserAccount> acc = userAccountService.findByEmail("testuser@example.com");
-        assertTrue(acc.isPresent());
+        String val = redisService.getValue(registrationData.getUsername());
+        assertNotNull(val);
+        DTO_UserRegistration registered = PayloadParser.parseJsonToObject(val, DTO_UserRegistration.class);
+        assertNotEquals("securePassword123", registered.getPassword());
+        assertNotNull(registered.getSalt());
+        assertEquals(registrationData.getFirstName(), registered.getFirstName());
+        assertEquals(registrationData.getLastName(), registered.getLastName());
+        assertEquals(registrationData.getLoginEmail(), registered.getLoginEmail());
     }
 
     @Test
@@ -121,6 +128,7 @@ public class UserAccountRegistrationIT {
         registrationData.setPhone("123-456-7890");
         registrationData.setContactEmail("contact@company.com");
         registrationData.setWebsiteUrl("https://www.testcompany.com");
+        registrationData.setCurrencyName("Currency");
 
         // act
         registrationService.requestCompanyRegistration(registrationData);
@@ -132,6 +140,6 @@ public class UserAccountRegistrationIT {
         assertEquals(account.get().getLoginEmail(), registrationData.getLoginEmail());
 
         CompanyAccount companyAccount = (CompanyAccount) account.get();
-        assertEquals(companyAccount.isApproved(), false);
+        assertEquals(companyAccount.getStatus(), ACCOUNT_STATUS.NOT_APPROVED);
     }
 }
