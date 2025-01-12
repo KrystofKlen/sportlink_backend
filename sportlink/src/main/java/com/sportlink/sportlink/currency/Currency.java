@@ -1,7 +1,10 @@
-package com.sportlink.sportlink.balance;
+package com.sportlink.sportlink.currency;
 
 import com.sportlink.sportlink.account.Account;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import lombok.Data;
 
 @Entity
