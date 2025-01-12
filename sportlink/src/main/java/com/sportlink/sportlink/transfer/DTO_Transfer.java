@@ -1,7 +1,6 @@
 package com.sportlink.sportlink.transfer;
 
-import com.sportlink.sportlink.account.DTO_UserAccount;
-import com.sportlink.sportlink.balance.DTO_Balance;
+import com.sportlink.sportlink.account.user.DTO_UserAccount;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,5 +14,6 @@ public class DTO_Transfer {
     private Long id;
     private DTO_UserAccount receiver;
     private LocalDateTime timestamp;
-    private DTO_Balance balanceTransfered;
+    private String currency;
+    private int amount;
 }

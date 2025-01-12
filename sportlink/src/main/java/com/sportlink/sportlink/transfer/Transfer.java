@@ -1,14 +1,12 @@
 package com.sportlink.sportlink.transfer;
 
-import com.sportlink.sportlink.account.Account;
-import com.sportlink.sportlink.account.UserAccount;
-import com.sportlink.sportlink.balance.Balance;
+import com.sportlink.sportlink.account.user.UserAccount;
+import com.sportlink.sportlink.currency.Currency;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -27,6 +25,8 @@ public class Transfer {
 
     private LocalDateTime timestamp;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    private Balance balanceTransfered;
+    @ManyToOne
+    private Currency currency;
+
+    private Integer amount;
 }
