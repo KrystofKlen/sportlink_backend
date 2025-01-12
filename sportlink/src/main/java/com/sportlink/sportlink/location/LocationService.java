@@ -1,39 +1,50 @@
 package com.sportlink.sportlink.location;
 
+import com.sportlink.sportlink.account.company.CompanyAccount;
+import com.sportlink.sportlink.currency.Currency;
+import com.sportlink.sportlink.currency.I_CurrencyRepository;
+import com.sportlink.sportlink.reward.DTO_Reward;
+import com.sportlink.sportlink.reward.Reward;
 import com.sportlink.sportlink.utils.DTO_Adapter;
+import com.sportlink.sportlink.utils.ImgService;
+import com.sportlink.sportlink.verification.I_VerificationStrategy;
+import com.sportlink.sportlink.verification.location.DTO_LocationVerificationRequest;
+import com.sportlink.sportlink.verification.location.LocationVerificationFactory;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class LocationService {
 
     private final I_LocationRepository locationRepository;
+    private final I_CurrencyRepository currencyRepository;
     private final DTO_Adapter adapter;
+    private final LocationVerificationFactory verificationFactory;
     public static final double MAX_DEVIATION = 0.5;
 
     @Autowired
-    public LocationService(I_LocationRepository locationRepository, DTO_Adapter adapter) {
+    public LocationService(I_LocationRepository locationRepository, I_CurrencyRepository currencyRepository, DTO_Adapter adapter, LocationVerificationFactory verificationFactory) {
         this.locationRepository = locationRepository;
+        this.currencyRepository = currencyRepository;
         this.adapter = adapter;
+        this.verificationFactory = verificationFactory;
     }
 
     @Transactional
-    public DTO_Location saveLocation(@Valid DTO_Location dtoLocation) {
+    public DTO_Location saveLocation(@Valid DTO_Location dtoLocation, CompanyAccount companyAccount) {
 
         if (dtoLocation.getVerificationStrategies().isEmpty()) {
             throw new IllegalArgumentException("No verification strategy found");
         }
-        return adapter.getDTO_Location(
-                locationRepository.save(adapter.getLocationFromDTO(dtoLocation))
-        );
+        Location location = adapter.getLocationFromDTO(dtoLocation);
+        location.setIssuer(companyAccount);
+        return adapter.getDTO_Location(locationRepository.save(location));
     }
 
     // This method will update only those variable which are != null
@@ -57,7 +68,7 @@ public class LocationService {
             existingLocation.setDescription(dtoLocation.getDescription());
         }
         if (dtoLocation.getActivities() != null && !dtoLocation.getActivities().isEmpty()) {
-            existingLocation.setActivities(new HashSet<> (dtoLocation.getActivities()));
+            existingLocation.setActivities(new HashSet<>(dtoLocation.getActivities()));
         }
         if (dtoLocation.getLongitude() != null) {
             existingLocation.setLongitude(dtoLocation.getLongitude());
@@ -68,6 +79,9 @@ public class LocationService {
         if (dtoLocation.getVerificationStrategies() != null && !dtoLocation.getVerificationStrategies().isEmpty()) {
             existingLocation.setVerificationStrategies(new HashSet<>(dtoLocation.getVerificationStrategies()));
         }
+        if (dtoLocation.getImagesUUIDs() != null && !dtoLocation.getImagesUUIDs().isEmpty()) {
+            existingLocation.setImagesUUID(dtoLocation.getImagesUUIDs());
+        }
 
         // 4. Save the updated entity
         return adapter.getDTO_Location(locationRepository.save(existingLocation));
@@ -75,7 +89,7 @@ public class LocationService {
 
     @Transactional
     public void deleteLocation(Long id) {
-        locationRepository.delete(id);
+        locationRepository.deleteById(id);
     }
 
     public Optional<DTO_Location> findLocationById(Long id) {
@@ -85,7 +99,6 @@ public class LocationService {
 
     public List<DTO_Location> findNearbyLocations(double lon, double lat, int radiusMeter) {
         List<Location> nearby = locationRepository.findNearbyLocations(lon, lat, MAX_DEVIATION);
-        List<DTO_Location> filtered = new ArrayList<>();
 
         return nearby.stream().filter(location ->
                 isWithinRadius(
@@ -96,6 +109,61 @@ public class LocationService {
                         radiusMeter)
         ).map(adapter::getDTO_Location).collect(Collectors.toList());
 
+    }
+
+    public Set<DTO_Location> findByActivities(List<ACTIVITY> activities) {
+        Set<DTO_Location> result = new HashSet<>();
+        activities.forEach(activity -> {
+            locationRepository.findByActivity(activity)
+                    .stream().map(adapter::getDTO_Location).forEach(result::add);
+        });
+        return result;
+    }
+
+    public boolean verifyLocation(DTO_LocationVerificationRequest request) {
+        Location location = locationRepository.findById(request.getLocationId()).orElseThrow();
+        List<I_VerificationStrategy> strategies =
+                verificationFactory.getVerificationStrategyList(request, location.getVerificationStrategies());
+        for (I_VerificationStrategy strategy : strategies) {
+            if (!strategy.verify()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Transactional
+    public DTO_Location addReward(long locationId, DTO_Reward dto) {
+        Location location = locationRepository.findById(locationId).orElseThrow();
+        Currency currency = currencyRepository.findCurrencyByName(dto.getCurrency()).orElseThrow();
+
+        Reward reward = new Reward();
+        reward.setRewardConditions(dto.getRewardConditions());
+        reward.setCurrency(currency);
+        reward.setAmount(dto.getAmount());
+        reward.setTotalClaimsLimit(dto.getTotalClaimsLimit());
+        reward.setTotalClaimsCount(0);
+        reward.setMonthClaimsLimit(dto.getMonthClaimsLimit());
+        reward.setMonthClaimsCount(0);
+        reward.setIntervals(dto.getIntervals());
+        reward.setTotalClaimsCount(dto.getTotalClaimsCount());
+
+        location.getRewards().add(reward);
+        Location saved = locationRepository.save(location);
+        return adapter.getDTO_Location(saved);
+    }
+
+    @Transactional
+    public void deleteReward(long locationId, long rewardId) {
+        Location location = locationRepository.findById(locationId).orElseThrow();
+        Reward reward = location.getRewards()
+                .stream().filter(r -> r.getId() == rewardId).findFirst().orElseThrow();
+        location.getRewards().remove(reward);
+        locationRepository.save(location);
+    }
+
+    public boolean allowModification(long accountId, long locationId) {
+        return locationRepository.findById(locationId).orElseThrow().getIssuer().getId() == accountId;
     }
 
     public static boolean isWithinRadius(double lon1, double lat1, double lon2, double lat2, int radius) {
@@ -122,4 +190,38 @@ public class LocationService {
         // Check if distance is within the radius
         return distance <= radius;
     }
+
+    // Returns all locations which are owned/issued by company with companyId
+    public List<DTO_Location> findByIssuerId(Long companyId) {
+        return locationRepository.findByIssuerId(companyId).stream().map(adapter::getDTO_Location).toList();
+    }
+
+    public boolean uploadImg(long locationId, MultipartFile image) {
+        String filename = UUID.randomUUID().toString() + "jpg";
+        boolean saved = ImgService.saveImage("DIR", filename, image);
+        if (!saved) {
+            return false;
+        }
+        Location location = locationRepository.findById(locationId).orElseThrow();
+        location.getImagesUUID().add(filename);
+        locationRepository.save(location);
+        return true;
+    }
+
+    public boolean deleteImg(long locationId, String filename) {
+        String path = "DIR/" + filename;
+        boolean deleted = ImgService.deleteImage("DIR", filename);
+        if (!deleted) {
+            return false;
+        }
+        Location location = locationRepository.findById(locationId).orElseThrow();
+        location.getImagesUUID().remove(filename);
+        locationRepository.save(location);
+        return true;
+    }
+
+    public List<Reward> getRewardsForLocation(Long locationId) {
+        return locationRepository.getRewardsForLocation(locationId);
+    }
+
 }

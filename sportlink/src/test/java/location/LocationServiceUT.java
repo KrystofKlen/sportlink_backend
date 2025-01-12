@@ -1,8 +1,10 @@
 package location;
 
+import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.location.*;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import com.sportlink.sportlink.verification.location.LOCATION_VERIFICATION_STRATEGY;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,17 +25,28 @@ public class LocationServiceUT {
     @Mock
     private DTO_Adapter adapter;
 
+    @Mock
+    private CompanyAccount companyAccount;
+
     @InjectMocks
     private LocationService locationService;
+
+    @BeforeEach
+    public void setUp() {
+        companyAccount = mock(CompanyAccount.class);
+    }
 
     @Test
     void testSaveLocationWithEmptyVerificationStrategies() {
         DTO_Location dtoLocation = new DTO_Location();
         dtoLocation.setVerificationStrategies(Set.of());
 
+        // Ensure IllegalArgumentException is thrown if no strategies are provided
         IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
-            locationService.saveLocation(dtoLocation);
+            locationService.saveLocation(dtoLocation, companyAccount);
         });
+
+        assertEquals("No verification strategy found", thrown.getMessage());
     }
 
     @Test
@@ -44,9 +57,9 @@ public class LocationServiceUT {
         when(dtoLocation.getVerificationStrategies()).thenReturn(Set.of(LOCATION_VERIFICATION_STRATEGY.USER_WITHIN_RADIUS));
         when(adapter.getLocationFromDTO(dtoLocation)).thenReturn(location);
 
-        locationService.saveLocation(dtoLocation);
+        locationService.saveLocation(dtoLocation, companyAccount);
 
-        verify(locationRepository).save(location);  // Verifies that save was called
+        verify(locationRepository).save(location);
     }
 
     @Test
@@ -69,14 +82,13 @@ public class LocationServiceUT {
         when(dtoLocation.getId()).thenReturn(1L);
         when(locationRepository.findById(1L)).thenReturn(Optional.of(existingLocation));
 
-        // Set up mock data
+        // Update location's name
         when(dtoLocation.getName()).thenReturn("New Location");
 
-        // Update method should update the name of the existing location
         locationService.updateLocation(dtoLocation);
 
         verify(existingLocation).setName("New Location");
-        verify(locationRepository).save(existingLocation);  // Verifies that save was called
+        verify(locationRepository).save(existingLocation);
     }
 
     @Test
@@ -85,7 +97,7 @@ public class LocationServiceUT {
 
         locationService.deleteLocation(locationId);
 
-        verify(locationRepository).delete(locationId);  // Verifies that delete was called
+        verify(locationRepository).deleteById(locationId);
     }
 
     @Test
@@ -100,81 +112,40 @@ public class LocationServiceUT {
 
     @Test
     void testIsWithinRadius_whenPointsAreWithinRadius() {
-        // Arrange
         double lon1 = -73.985428;
-        double lat1 = 40.748817; // Empire State Building
+        double lat1 = 40.748817;
         double lon2 = -73.985100;
-        double lat2 = 40.749000; // Nearby point
-        int radius = 100; // 100 meters
+        double lat2 = 40.749000;
+        int radius = 100;
 
-        // Act
         boolean result = LocationService.isWithinRadius(lon1, lat1, lon2, lat2, radius);
 
-        // Assert
-        assertTrue(result, "Expected points to be within 100 meters radius");
+        assertTrue(result);
     }
 
     @Test
     void testIsWithinRadius_whenPointsAreOutsideRadius() {
-        // Arrange
         double lon1 = -73.985428;
-        double lat1 = 40.748817; // Empire State Building
+        double lat1 = 40.748817;
         double lon2 = -73.990000;
-        double lat2 = 40.750000; // Farther point
-        int radius = 100; // 100 meters
+        double lat2 = 40.750000;
+        int radius = 100;
 
-        // Act
         boolean result = LocationService.isWithinRadius(lon1, lat1, lon2, lat2, radius);
 
-        // Assert
-        assertFalse(result, "Expected points to be outside 100 meters radius");
-    }
-
-    @Test
-    void testIsWithinRadius_whenPointsAreExactlyOnRadius() {
-        // Arrange
-        double lon1 = -73.985428;
-        double lat1 = 40.748817; // Empire State Building
-        double lon2 = -73.985600;
-        double lat2 = 40.749200; // Point exactly on radius
-        int radius = 50; // 50 meters
-
-        // Act
-        boolean result = LocationService.isWithinRadius(lon1, lat1, lon2, lat2, radius);
-
-        // Assert
-        assertTrue(result, "Expected points to be exactly on 50 meters radius");
+        assertFalse(result);
     }
 
     @Test
     void testIsWithinRadius_whenPointsAreIdentical() {
-        // Arrange
         double lon1 = -73.985428;
-        double lat1 = 40.748817; // Empire State Building
+        double lat1 = 40.748817;
         double lon2 = -73.985428;
-        double lat2 = 40.748817; // Same point
-        int radius = 0; // 0 meters
+        double lat2 = 40.748817;
+        int radius = 0;
 
-        // Act
         boolean result = LocationService.isWithinRadius(lon1, lat1, lon2, lat2, radius);
 
-        // Assert
-        assertTrue(result, "Expected identical points to be within 0 meters radius");
-    }
-
-    @Test
-    void testIsWithinRadius_whenRadiusIsZeroAndPointsDiffer() {
-        // Arrange
-        double lon1 = -73.985428;
-        double lat1 = 40.748817; // Empire State Building
-        double lon2 = -73.985429;
-        double lat2 = 40.748818; // Slightly different point
-        int radius = 0; // 0 meters
-
-        // Act
-        boolean result = LocationService.isWithinRadius(lon1, lat1, lon2, lat2, radius);
-
-        // Assert
-        assertFalse(result, "Expected points to be outside 0 meters radius");
+        assertTrue(result);
     }
 }

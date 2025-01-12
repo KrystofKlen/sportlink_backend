@@ -1,6 +1,8 @@
 package location;
 
 import com.sportlink.sportlink.SportlinkApplication;
+import com.sportlink.sportlink.account.company.CompanyAccount;
+import com.sportlink.sportlink.currency.Currency;
 import com.sportlink.sportlink.location.*;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import com.sportlink.sportlink.verification.location.LOCATION_VERIFICATION_STRATEGY;
@@ -29,6 +31,8 @@ public class LocationServiceIT {
     private DTO_Location dtoLocation;
     private Location location;
 
+    private CompanyAccount companyAccount;
+
     @BeforeEach
     public void setUp() {
         // Set up the initial Location entity and DTO_Location.
@@ -40,12 +44,19 @@ public class LocationServiceIT {
 
         // Corresponding DTO
         dtoLocation = dtoAdapter.getDTO_Location(location);
+
+        companyAccount = new CompanyAccount();
+        companyAccount.setName("Test Company Account");
+
+        Currency currency = new Currency();
+        currency.setName("AAA");
+        currency.setIssuer(companyAccount);
     }
 
     @Test
     public void testSaveLocation() {
         // Save the DTO Location via LocationService
-        DTO_Location savedLocation = locationService.saveLocation(dtoLocation);
+        DTO_Location savedLocation = locationService.saveLocation(dtoLocation, companyAccount);
 
         // Assert that the Location is saved and the DTO returned is not null
         assertNotNull(savedLocation);
@@ -60,7 +71,7 @@ public class LocationServiceIT {
     @Test
     public void testUpdateLocation() {
         // First save the Location to have it in the database
-        DTO_Location savedLocation = locationService.saveLocation(dtoLocation);
+        DTO_Location savedLocation = locationService.saveLocation(dtoLocation, companyAccount);
 
         // Now update the Location data
         savedLocation.setName("Updated Location");
@@ -94,7 +105,7 @@ public class LocationServiceIT {
     @Test
     public void testDeleteLocation() {
         // First save the Location to the repository
-        DTO_Location savedLocation = locationService.saveLocation(dtoLocation);
+        DTO_Location savedLocation = locationService.saveLocation(dtoLocation, companyAccount);
 
         // Now delete the Location
         locationService.deleteLocation(savedLocation.getId());
@@ -107,7 +118,7 @@ public class LocationServiceIT {
     @Test
     public void testFindLocationById() {
         // First save the Location to the repository
-        DTO_Location savedLocation = locationService.saveLocation(dtoLocation);
+        DTO_Location savedLocation = locationService.saveLocation(dtoLocation, companyAccount);
 
         // Retrieve the Location by ID
         Optional<DTO_Location> foundLocation = locationService.findLocationById(savedLocation.getId());
@@ -131,7 +142,7 @@ public class LocationServiceIT {
         // First save a location with specific coordinates to the repository
         dtoLocation.setLongitude(10.0);
         dtoLocation.setLatitude(20.0);
-        locationService.saveLocation(dtoLocation);
+        locationService.saveLocation(dtoLocation, companyAccount);
 
         // Find locations within a certain radius
         List<DTO_Location> nearbyLocations = locationService.findNearbyLocations(10.0, 20.0, 5);
@@ -140,5 +151,50 @@ public class LocationServiceIT {
         assertNotNull(nearbyLocations);
         assertFalse(nearbyLocations.isEmpty());
         assertEquals(1, nearbyLocations.size()); // The saved location should be found
+    }
+
+    @Test
+    public void testFindLocationByActivities() {
+        Location location1 = new Location();
+        location1.setName("1");
+        Location location2 = new Location();
+        location2.setName("2");
+        Location location3 = new Location();
+        location3.setName("3");
+        Location location4 = new Location();
+        location4.setName("4");
+        Location location5 = new Location();
+        location5.setName("5");
+
+        location1.setActivities(Set.of(ACTIVITY.FOOTBALL, ACTIVITY.SWIMMING));
+        location2.setActivities(Set.of(ACTIVITY.ICE_SKATING,ACTIVITY.SKATING, ACTIVITY.FOOTBALL));
+        location3.setActivities(Set.of(ACTIVITY.BOWLING, ACTIVITY.SWIMMING));
+        location4.setActivities(Set.of(ACTIVITY.FOOTBALL));
+        location5.setActivities(Set.of(ACTIVITY.SWIMMING, ACTIVITY.ICE_SKATING));
+
+        locationRepository.save(location1);
+        locationRepository.save(location2);
+        locationRepository.save(location3);
+        locationRepository.save(location4);
+        locationRepository.save(location5);
+
+        Set<DTO_Location> result = locationService.findByActivities(List.of(ACTIVITY.FOOTBALL));
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(3, result.size());
+        result.forEach(location -> {
+            assertTrue(location.getActivities().contains(ACTIVITY.FOOTBALL));
+            assertTrue( !location.getName().equals("5") && !location.getName().equals("3") );
+        });
+
+        result.clear();
+        result = locationService.findByActivities(List.of(ACTIVITY.GOLF));
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+
+        result = locationService.findByActivities(List.of(ACTIVITY.SWIMMING, ACTIVITY.ICE_SKATING, ACTIVITY.FOOTBALL));
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(5, result.size());
     }
 }
