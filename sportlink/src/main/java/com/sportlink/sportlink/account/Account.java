@@ -1,7 +1,9 @@
 package com.sportlink.sportlink.account;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @NoArgsConstructor
@@ -24,4 +26,8 @@ public class Account {
     private String salt;
 
     private ROLE role;
+
+    private String profilePicUUID;
+
+    private ACCOUNT_STATUS status;
 }

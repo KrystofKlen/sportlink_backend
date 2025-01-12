@@ -1,4 +1,4 @@
-package com.sportlink.sportlink.account;
+package com.sportlink.sportlink.account.company;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,5 +11,5 @@ public class DTO_CompanyAccount {
     private String phone;
     private String contactEmail;
     private String websiteUrl;
-    private String image;
+    private String profilePicUUID;
 }

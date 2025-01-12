@@ -1,12 +1,17 @@
 package com.sportlink.sportlink.account;
 
-import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
 import java.util.Optional;
 
-public interface I_AccountRepository {
-    Account save(Account account);
-    Optional<Account> findById(Long id);
-    Optional<Account> findByUsername(String username);
-    List<Account> findAll();
-    void delete(Long id);
+@Repository
+public interface I_AccountRepository extends JpaRepository<Account, Long> {
+    @Query("SELECT a FROM Account a WHERE a.username =:username")
+    Optional<Account> findByUsername(@Param("username") String username);
+
+    @Query("SELECT a FROM Account a WHERE a.loginEmail =:email")
+    Optional<Account> findByEmail(@Param("email") String email);
 }
