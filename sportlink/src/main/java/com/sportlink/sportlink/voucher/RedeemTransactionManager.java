@@ -1,6 +1,6 @@
 package com.sportlink.sportlink.voucher;
 
-import com.sportlink.sportlink.account.I_AccountRepository;
+import com.sportlink.sportlink.account.account.I_AccountRepository;
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.transfer.I_TransferRepository;
 import com.sportlink.sportlink.transfer.Transfer;

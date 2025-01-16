@@ -1,5 +1,6 @@
-package com.sportlink.sportlink.account;
+package com.sportlink.sportlink.account.account;
 
+import com.sportlink.sportlink.account.ROLE;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

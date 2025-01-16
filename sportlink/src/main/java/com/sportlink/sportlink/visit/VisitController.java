@@ -7,6 +7,7 @@ import com.sportlink.sportlink.utils.RESULT_CODE;
 import com.sportlink.sportlink.verification.location.DTO_LocationVerificationRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,24 +31,28 @@ public class VisitController {
     }
 
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<DTO_Visit>> getVisitsForUser(@PathVariable Long userId) {
         List<DTO_Visit> visits = visitService.getVisitsForUser(userId);
         return ResponseEntity.ok(visits);
     }
 
     @GetMapping("/company/{companyId}")
+    @PreAuthorize("hasRole('COMPANY')")
     public ResponseEntity<List<DTO_Visit>> getVisitsForCompany(@PathVariable Long companyId) {
         List<DTO_Visit> visits = visitService.getVisitsForCompany(companyId);
         return ResponseEntity.ok(visits);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DTO_Visit> getVisitById(@PathVariable Long id) {
         Optional<DTO_Visit> visit = visitService.getVisitById(id);
         return visit.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/open")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<RESULT_CODE> openVisit(@RequestBody DTO_VisitRequest request) {
         UserAccount acc = new UserAccount();
         Optional<DTO_Location> opt = locationService.findLocationById(request.getLocationId());
@@ -87,6 +92,7 @@ public class VisitController {
     }
 
     @PostMapping("/close")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<RESULT_CODE> closeVisit(@RequestBody DTO_LocationVerificationRequest request) {
         UserAccount acc = new UserAccount();
         try {

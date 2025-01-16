@@ -1,7 +1,8 @@
-package com.sportlink.sportlink.account;
+package com.sportlink.sportlink.account.account;
 
 import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.security.EncryptionUtil;
+import com.sportlink.sportlink.utils.DTO_Adapter;
 import com.sportlink.sportlink.utils.ImgService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +21,7 @@ public class AccountService {
     private final RedisService redisService;
     private final EncryptionUtil.SaltGenerator saltGenerator;
     private final PasswordEncoder passwordEncoder;
+    private final DTO_Adapter adapter;
 
     // Create or Update UserAccount
     @Transactional
@@ -30,6 +32,15 @@ public class AccountService {
     // Find UserAccount by ID
     public Optional<Account> findAccountById(Long id) {
         return accountRepository.findById(id);
+    }
+
+    public Optional<DTO_Account> findDTOAccountByUsername(String username) {
+        Optional<Account> account = accountRepository.findByUsername(username);
+        if (account.isEmpty()) {
+            return Optional.empty();
+        }
+        Account ac = account.get();
+        return Optional.of( adapter.getDTO_Account(ac) );
     }
 
     public Optional<Account> findAccountByEmail(String email) {

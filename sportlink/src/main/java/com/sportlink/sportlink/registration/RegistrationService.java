@@ -1,7 +1,7 @@
 package com.sportlink.sportlink.registration;
 
-import com.sportlink.sportlink.account.Account;
-import com.sportlink.sportlink.account.AccountService;
+import com.sportlink.sportlink.account.account.Account;
+import com.sportlink.sportlink.account.account.AccountService;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.account.user.DTO_UserAccount;
 import com.sportlink.sportlink.account.user.UserAccount;

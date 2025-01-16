@@ -2,6 +2,7 @@ package com.sportlink.sportlink.transfer;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,6 +19,7 @@ public class TransferController {
     }
 
     @GetMapping("/users-transfers")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Page<DTO_Transfer>> getUsersTransfers(@RequestParam(defaultValue = "0") int page,
                                                                 @RequestParam(defaultValue = "10") int size) {
         Long uderAccountId = 1L;

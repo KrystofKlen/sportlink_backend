@@ -1,6 +1,6 @@
 package com.sportlink.sportlink.voucher;
 
-import com.sportlink.sportlink.account.Account;
+import com.sportlink.sportlink.account.account.Account;
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.currency.Currency;
 import jakarta.persistence.*;

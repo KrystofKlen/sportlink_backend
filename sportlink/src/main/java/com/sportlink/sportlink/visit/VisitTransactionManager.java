@@ -1,6 +1,6 @@
 package com.sportlink.sportlink.visit;
 
-import com.sportlink.sportlink.account.I_AccountRepository;
+import com.sportlink.sportlink.account.account.I_AccountRepository;
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.location.I_LocationRepository;
 import com.sportlink.sportlink.location.Location;

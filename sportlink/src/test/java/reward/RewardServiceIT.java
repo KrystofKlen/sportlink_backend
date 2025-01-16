@@ -1,7 +1,7 @@
 package reward;
 
 import com.sportlink.sportlink.SportlinkApplication;
-import com.sportlink.sportlink.account.Account;
+import com.sportlink.sportlink.account.account.Account;
 import com.sportlink.sportlink.currency.Currency;
 import com.sportlink.sportlink.currency.I_CurrencyRepository;
 import com.sportlink.sportlink.reward.DTO_Reward;

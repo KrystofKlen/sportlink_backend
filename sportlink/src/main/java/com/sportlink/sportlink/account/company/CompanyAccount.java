@@ -1,14 +1,12 @@
 package com.sportlink.sportlink.account.company;
 
-import com.sportlink.sportlink.account.ACCOUNT_STATUS;
-import com.sportlink.sportlink.account.Account;
+import com.sportlink.sportlink.account.account.ACCOUNT_STATUS;
+import com.sportlink.sportlink.account.account.Account;
 import com.sportlink.sportlink.account.ROLE;
 import jakarta.persistence.Entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import java.util.Set;
 
 @Entity
 @Data

@@ -1,4 +1,4 @@
-package com.sportlink.sportlink.account;
+package com.sportlink.sportlink.account.account;
 
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.account.user.UserAccountService;
@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +31,7 @@ public class AccountController {
 
     // Get Account by ID
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY','USER')")
     public ResponseEntity<Account> getAccountById(@PathVariable Long id) {
         Optional<Account> account = accountService.findAccountById(id);
         return account.map(ResponseEntity::ok)
@@ -38,6 +40,7 @@ public class AccountController {
 
     // Get Account by Email
     @GetMapping("/email")
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY','USER')")
     public ResponseEntity<Account> getAccountByEmail(@RequestParam String email) {
         Optional<Account> account = accountService.findAccountByEmail(email);
         return account.map(ResponseEntity::ok)
@@ -46,6 +49,7 @@ public class AccountController {
 
     // Delete Account by ID
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY','USER')")
     public ResponseEntity<Void> deleteAccount(@PathVariable Long id) {
         accountService.deleteAccount(id);
         return ResponseEntity.noContent().build();
@@ -53,6 +57,7 @@ public class AccountController {
 
     // Set Profile Image UUID
     @PatchMapping("/{id}/profile-image")
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY','USER')")
     public ResponseEntity<Void> setProfileImageUUID(@PathVariable Long id, @RequestParam MultipartFile image) {
         boolean uploaded = accountService.setProfileImgUUID(id, image);
         if (uploaded) {
@@ -62,7 +67,8 @@ public class AccountController {
     }
 
     @DeleteMapping("/{id}/profile-image")
-    public ResponseEntity<Void> setProfileImageUUID(@PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY','USER')")
+    public ResponseEntity<Void> deleteProfileImageUUID(@PathVariable Long id) {
         boolean uploaded = accountService.setProfileImgUUID(id, null);
         if (uploaded) {
             return ResponseEntity.noContent().build();
@@ -71,6 +77,7 @@ public class AccountController {
     }
 
     @GetMapping("/balance")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Map<String, Integer>> getBalance() {
         UserAccount user = new UserAccount();
         Map<String, Integer> balance = userAccountService.getBalance(user);
@@ -78,6 +85,7 @@ public class AccountController {
     }
 
     @PatchMapping("/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> changeStatus(@RequestParam Long id, @RequestParam ACCOUNT_STATUS status) {
         Long adminId = 1L;
         Optional<Account> account = accountService.findAccountById(id);
@@ -96,6 +104,7 @@ public class AccountController {
     }
 
     @PatchMapping("/password/{token}")
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY','USER')")
     public ResponseEntity<Void> changePassword(
             @PathVariable String token,
             @RequestParam String otp,

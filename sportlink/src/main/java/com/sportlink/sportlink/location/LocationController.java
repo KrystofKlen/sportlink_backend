@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +31,7 @@ public class LocationController {
      * Create a new location
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY')")
     public ResponseEntity<DTO_Location> createLocation(@Valid @RequestBody DTO_Location dtoLocation) {
         CompanyAccount acc = new CompanyAccount();
         DTO_Location savedLocation = locationService.saveLocation(dtoLocation, acc);
@@ -40,6 +42,7 @@ public class LocationController {
      * Update an existing location
      */
     @PatchMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY')")
     public ResponseEntity<DTO_Location> updateLocation(@RequestBody DTO_Location dtoLocation) {
         // get account id from request
         // get account id from request
@@ -56,6 +59,7 @@ public class LocationController {
      * Delete a location by ID
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY')")
     public ResponseEntity<Void> deleteLocation(@PathVariable Long id) {
         Long accountId = 1L;
         boolean isAllowed = locationService.allowModification(accountId, id);
@@ -67,6 +71,7 @@ public class LocationController {
     }
 
     @PostMapping("/{locationId}/reward")
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY')")
     public ResponseEntity<DTO_Location> addRewardLocation(@Valid @RequestBody DTO_Reward reward, @PathVariable long locationId) {
         Long accountId = 1L;
         boolean isAllowed = locationService.allowModification(accountId, locationId);
@@ -88,6 +93,7 @@ public class LocationController {
     }
 
     @DeleteMapping("/{locationId}/reward/{rewardId}")
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY')")
     public ResponseEntity<Void> deleteRewardLocation(@PathVariable Long locationId, @PathVariable Long rewardId) {
         Long accountId = 1L;
         boolean isAllowed = locationService.allowModification(accountId, rewardId);
@@ -140,6 +146,7 @@ public class LocationController {
 
     // Endpoint to upload an image
     @PostMapping("/{locationId}/images")
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY')")
     public ResponseEntity<String> uploadImage(@PathVariable long locationId, @RequestParam("image") MultipartFile image) {
         Long accountId = 1L;
         boolean isAllowed = locationService.allowModification(accountId, locationId);
@@ -162,8 +169,8 @@ public class LocationController {
     }
 
     // Endpoint to delete an image
-    // Endpoint to delete an image
     @DeleteMapping("/{locationId}/images/{filename}")
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY')")
     public ResponseEntity<String> deleteImage(@PathVariable long locationId, @PathVariable String filename) {
         Long accountId = 1L;
         boolean isAllowed = locationService.allowModification(accountId, locationId);

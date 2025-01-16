@@ -1,5 +1,7 @@
 package com.sportlink.sportlink.utils;
 
+import com.sportlink.sportlink.account.account.Account;
+import com.sportlink.sportlink.account.account.DTO_Account;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.account.company.DTO_CompanyAccount;
 import com.sportlink.sportlink.account.user.DTO_UserAccount;
@@ -138,6 +140,19 @@ public class DTO_Adapter {
                 review.getLocation().getId(),
                 review.getUserPosting().getUsername(),
                 review.getContent()
+        );
+    }
+
+    public DTO_Account getDTO_Account(Account account) {
+        return new DTO_Account(
+                account.getId(),
+                account.getLoginEmail(),
+                account.getUsername(),
+                account.getPassword(),
+                account.getSalt(),
+                account.getRole(),
+                account.getProfilePicUUID(),
+                account.getStatus()
         );
     }
 

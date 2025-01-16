@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,6 +17,7 @@ public class RewardController {
 
     // Create a new reward
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY')")
     public ResponseEntity<DTO_Reward> createReward(@Valid @RequestBody DTO_Reward dto) {
         try {
             DTO_Reward createdReward = rewardService.save(dto);
@@ -27,6 +29,7 @@ public class RewardController {
 
     // Update an existing reward
     @PutMapping
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY')")
     public ResponseEntity<DTO_Reward> updateReward(@Valid @RequestBody DTO_Reward dto) {
         try {
             DTO_Reward updatedReward = rewardService.update(dto);

@@ -1,20 +1,15 @@
 package com.sportlink.sportlink.account.user;
 
-import com.sportlink.sportlink.account.ACCOUNT_STATUS;
-import com.sportlink.sportlink.account.Account;
+import com.sportlink.sportlink.account.account.ACCOUNT_STATUS;
+import com.sportlink.sportlink.account.account.Account;
 import com.sportlink.sportlink.account.ROLE;
 import com.sportlink.sportlink.currency.Currency;
-import com.sportlink.sportlink.transfer.Transfer;
-import com.sportlink.sportlink.visit.Visit;
-import com.sportlink.sportlink.voucher.Voucher;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 @Entity

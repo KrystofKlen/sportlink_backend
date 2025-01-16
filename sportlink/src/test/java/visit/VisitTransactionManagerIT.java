@@ -1,7 +1,7 @@
 package visit;
 
 import com.sportlink.sportlink.SportlinkApplication;
-import com.sportlink.sportlink.account.I_AccountRepository;
+import com.sportlink.sportlink.account.account.I_AccountRepository;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.account.user.UserAccountService;

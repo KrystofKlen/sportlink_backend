@@ -1,6 +1,6 @@
 package com.sportlink.sportlink.voucher;
 
-import com.sportlink.sportlink.account.I_AccountRepository;
+import com.sportlink.sportlink.account.account.I_AccountRepository;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.currency.Currency;
@@ -66,8 +66,11 @@ public class VoucherService {
         return adapter.getDTO_Voucher(voucherRepository.save(voucher));
     }
 
-    public String revealCode(Long voucherId) throws Exception {
+    public String revealCode(Long voucherId, Long userId) throws Exception {
         Voucher voucher = voucherRepository.findById(voucherId).orElseThrow();
+        if( voucher.getBuyer().getId() != userId){
+            throw new Exception();
+        }
         return EncryptionUtil.decrypt(voucher.getCode());
     }
 
@@ -99,39 +102,6 @@ public class VoucherService {
             throw new RuntimeException("Voucher state is REDEEMED");
         }
         voucherRepository.deleteById(voucherId);
-    }
-
-    @Transactional
-    public DTO_Voucher buyVoucher(UserAccount buyer, Long voucherId) {
-
-        try {
-            // get wanted voucher and price
-            Voucher voucher = voucherRepository.findById(voucherId).get();
-            String currencyNeeded = voucher.getCurrency().getName();
-            int amountNeeded = voucher.getPrice();
-
-            // check if user has enough money
-            int updated = buyer.getBalance().get(currencyNeeded) - amountNeeded;
-            if (updated < 0) {
-                throw new RuntimeException();
-            }
-
-            buyer.getBalance().put(voucher.getCurrency(), updated);
-
-            // add transfer
-            Transfer transfer = new Transfer(null, buyer, LocalDateTime.now(), voucher.getCurrency(), voucher.getPrice());
-            transferRepository.save(transfer);
-
-            // add voucher
-            voucher.setState(VOUCHER_STATE.REDEEMED);
-            voucher.setBuyer(buyer);
-
-            return adapter.getDTO_Voucher(voucherRepository.save(voucher));
-
-        } catch (Exception ex) {
-            // rollback transaction
-            throw new RuntimeException();
-        }
     }
 
     public List<String> saveImages(List<MultipartFile> images) throws Exception {

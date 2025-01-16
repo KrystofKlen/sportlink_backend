@@ -1,14 +1,13 @@
 package com.sportlink.sportlink.account.user;
 
-import com.sportlink.sportlink.account.Account;
-import com.sportlink.sportlink.account.AccountService;
-import com.sportlink.sportlink.account.I_AccountRepository;
+import com.sportlink.sportlink.account.account.Account;
+import com.sportlink.sportlink.account.account.AccountService;
+import com.sportlink.sportlink.account.account.I_AccountRepository;
 import com.sportlink.sportlink.currency.Currency;
 import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +31,7 @@ public class UserAccountService extends AccountService {
             DTO_Adapter adapter
     ) {
         // Call the super constructor with the required dependencies for AccountService
-        super(accountRepository, redisService, saltGenerator, passwordEncoder);
+        super(accountRepository, redisService, saltGenerator, passwordEncoder,adapter);
 
         this.accountRepository = accountRepository;
         this.adapter = adapter;

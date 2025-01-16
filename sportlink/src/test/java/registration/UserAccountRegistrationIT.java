@@ -1,9 +1,9 @@
 package registration;
 
 import com.sportlink.sportlink.SportlinkApplication;
-import com.sportlink.sportlink.account.ACCOUNT_STATUS;
-import com.sportlink.sportlink.account.Account;
-import com.sportlink.sportlink.account.AccountService;
+import com.sportlink.sportlink.account.account.ACCOUNT_STATUS;
+import com.sportlink.sportlink.account.account.Account;
+import com.sportlink.sportlink.account.account.AccountService;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.account.user.UserAccountService;
 import com.sportlink.sportlink.redis.RedisService;

@@ -1,6 +1,6 @@
 package com.sportlink.sportlink.currency;
 
-import com.sportlink.sportlink.account.Account;
+import com.sportlink.sportlink.account.account.Account;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
