@@ -100,7 +100,7 @@ public class VoucherServiceIT {
         DTO_Voucher savedVoucher = voucherService.addVoucher(issuerAccount, dtoVoucher, List.of());
 
         // Delete the voucher
-        voucherService.deleteVoucher(savedVoucher.getId());
+        voucherService.deleteVoucher(savedVoucher.getId(), issuerAccount.getId());
 
         // Verify it no longer exists
         Optional<DTO_Voucher> fetchedVoucher = voucherService.getVoucher(savedVoucher.getId());

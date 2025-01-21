@@ -2,6 +2,7 @@ package com.sportlink.sportlink.codes;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,6 +16,7 @@ public class CodesController {
     }
 
     @GetMapping("/otp-for-location")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<DTO_Code> requestOTPLocation(@RequestParam long userId, @RequestParam long locationId) {
         String code = codesService.sendLocationOTP(userId, locationId);
         DTO_Code dto = new DTO_Code();
@@ -24,6 +26,7 @@ public class CodesController {
     }
 
     @PutMapping("/otp-passwd-reset")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<String> requestPasswordResetOTP(@RequestParam long userId) {
         try {
             String token = codesService.sendCodeForOTP(userId);

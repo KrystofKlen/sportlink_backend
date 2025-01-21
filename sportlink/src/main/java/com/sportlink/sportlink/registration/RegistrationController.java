@@ -18,6 +18,7 @@ public class RegistrationController {
     private final EmailSender emailSender;
 
     @PostMapping("/start-user-registration")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Void> startUserRegistration(@Valid @ModelAttribute DTO_UserRegistration registrationData) {
         try {
             String otp = registrationService.startRegistration(registrationData);
@@ -33,6 +34,7 @@ public class RegistrationController {
     }
 
     @PostMapping("/complete-user-registration")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<String> completeUserRegistration(@RequestParam String username, @RequestParam String otp) {
         try {
             registrationService.completeRegistration(username, otp);
@@ -43,6 +45,7 @@ public class RegistrationController {
     }
 
     @PostMapping("/request-company-registration")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<String> requestCompanyRegistration(@Valid @RequestBody DTO_CompanyRegistration registrationData) {
         try {
             Long id = registrationService.requestCompanyRegistration(registrationData);

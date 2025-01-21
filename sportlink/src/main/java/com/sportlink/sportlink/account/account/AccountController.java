@@ -2,6 +2,7 @@ package com.sportlink.sportlink.account.account;
 
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.account.user.UserAccountService;
+import com.sportlink.sportlink.security.SecurityUtils;
 import com.sportlink.sportlink.utils.ImgService;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -15,7 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping("api/v1/accounts")
 @AllArgsConstructor
 public class AccountController {
 
@@ -24,6 +25,7 @@ public class AccountController {
 
     // Create or Update Account
     @PostMapping
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Account> saveAccount(@RequestBody Account account) {
         Account savedAccount = accountService.save(account);
         return ResponseEntity.ok(savedAccount);
@@ -87,7 +89,7 @@ public class AccountController {
     @PatchMapping("/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> changeStatus(@RequestParam Long id, @RequestParam ACCOUNT_STATUS status) {
-        Long adminId = 1L;
+        Long adminId = SecurityUtils.getCurrentAccountId();
         Optional<Account> account = accountService.findAccountById(id);
         if (account.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -120,6 +122,7 @@ public class AccountController {
     }
 
     @GetMapping("/images/{imgName}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Resource> getImg(String imgName) {
         Optional<Resource> img = ImgService.getImage("DIR", imgName);
         return img.map(resource -> new ResponseEntity<>(resource, HttpStatus.OK))

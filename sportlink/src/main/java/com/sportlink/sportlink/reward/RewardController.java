@@ -1,6 +1,5 @@
 package com.sportlink.sportlink.reward;
 
-import com.sportlink.sportlink.utils.DTO_Adapter;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;

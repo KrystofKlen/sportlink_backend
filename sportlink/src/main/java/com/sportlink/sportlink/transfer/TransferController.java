@@ -1,5 +1,6 @@
 package com.sportlink.sportlink.transfer;
 
+import com.sportlink.sportlink.security.SecurityUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,8 +23,8 @@ public class TransferController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Page<DTO_Transfer>> getUsersTransfers(@RequestParam(defaultValue = "0") int page,
                                                                 @RequestParam(defaultValue = "10") int size) {
-        Long uderAccountId = 1L;
-        Page<DTO_Transfer> result = transferService.getUsersTransfers(page, size, uderAccountId);
+        Long accountId = SecurityUtils.getCurrentAccountId();
+        Page<DTO_Transfer> result = transferService.getUsersTransfers(page, size, accountId);
         return ResponseEntity.ok(result);
     }
 }

@@ -1,5 +1,7 @@
 package com.sportlink.sportlink.voucher;
 
+import com.sportlink.sportlink.account.ROLE;
+import com.sportlink.sportlink.account.account.Account;
 import com.sportlink.sportlink.account.account.I_AccountRepository;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.account.user.UserAccount;
@@ -93,15 +95,31 @@ public class VoucherService {
     }
 
     @Transactional
-    public void deleteVoucher(Long voucherId) {
+    public void deleteVoucher(Long voucherId, Long accountRequestingId) {
+
         Optional<Voucher> existingVoucherOpt = voucherRepository.findById(voucherId);
         if (existingVoucherOpt.isEmpty()) {
             return;
         }
+
         if (existingVoucherOpt.get().getState().equals(VOUCHER_STATE.REDEEMED)) {
             throw new RuntimeException("Voucher state is REDEEMED");
         }
-        voucherRepository.deleteById(voucherId);
+
+        Account acc = accountRepository.findById(accountRequestingId).orElseThrow();
+        if(acc.getRole().equals(ROLE.ADMIN)){
+            voucherRepository.deleteById(voucherId);
+        } else if (acc.getRole().equals(ROLE.COMPANY)) {
+
+            Long issuerId = existingVoucherOpt.get().getIssuer().getId();
+            if(accountRequestingId != issuerId){
+                throw new RuntimeException("Not authorized");
+            }
+
+            voucherRepository.deleteById(voucherId);
+        } else {
+            throw new RuntimeException("Not authorized");
+        }
     }
 
     public List<String> saveImages(List<MultipartFile> images) throws Exception {

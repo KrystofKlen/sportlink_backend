@@ -1,7 +1,9 @@
 package com.sportlink.sportlink.voucher;
 
+import com.sportlink.sportlink.account.account.AccountService;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.account.user.UserAccount;
+import com.sportlink.sportlink.security.SecurityUtils;
 import com.sportlink.sportlink.utils.ImgService;
 import com.sportlink.sportlink.utils.RESULT_CODE;
 import lombok.AllArgsConstructor;
@@ -25,14 +27,15 @@ import static com.sportlink.sportlink.utils.RESULT_CODE.REDEEMED;
 public class VoucherController {
     private final VoucherService voucherService;
     private final RedeemTransactionManager redeemTransactionManager;
+    private final AccountService accountService;
 
 
     @PostMapping
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<DTO_Voucher> createVoucher(@RequestBody DTO_Voucher voucher, @RequestBody List<MultipartFile> images) {
         try {
-            Long compId = 8L;
-            CompanyAccount account = new CompanyAccount();
+            Long compId = SecurityUtils.getCurrentAccountId();;
+            CompanyAccount account = (CompanyAccount) accountService.findAccountById(compId).get();
             DTO_Voucher createdVoucher = voucherService.addVoucher(account, voucher, images);
             return new ResponseEntity<>(createdVoucher, HttpStatus.CREATED);
         } catch (Exception e) {
@@ -41,6 +44,7 @@ public class VoucherController {
     }
 
     @GetMapping("/{voucherId}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<DTO_Voucher> getVoucher(@PathVariable Long voucherId) {
         Optional<DTO_Voucher> voucher = voucherService.getVoucher(voucherId);
         return voucher.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
@@ -49,8 +53,8 @@ public class VoucherController {
     @GetMapping("/reveal/")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<String> revealVoucherCode(@PathVariable Long voucherId) {
-        Long userId = 1L;
         try {
+            Long userId = SecurityUtils.getCurrentAccountId();;
             String result = voucherService.revealCode(voucherId, userId);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -59,6 +63,7 @@ public class VoucherController {
     }
 
     @GetMapping
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Page<DTO_Voucher>> getVouchersInOffer(@RequestParam(defaultValue = "0") int page,
                                                                 @RequestParam(defaultValue = "10") int size) {
         Page<DTO_Voucher> vouchers = voucherService.getVouchersInOffer(page, size);
@@ -70,7 +75,8 @@ public class VoucherController {
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<Void> deleteVoucher(@PathVariable Long voucherId) {
         try {
-            voucherService.deleteVoucher(voucherId);
+            Long accountId = SecurityUtils.getCurrentAccountId();
+            voucherService.deleteVoucher(voucherId, accountId);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -80,14 +86,15 @@ public class VoucherController {
     @GetMapping("/buyer")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<DTO_Voucher>> getBuyersVouchers() {
-        Long buyerId = 1L;
+        Long buyerId = SecurityUtils.getCurrentAccountId();
         List<DTO_Voucher> result = voucherService.getBuyersVouchers(buyerId);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/issuer")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<DTO_Voucher>> getIssuersVouchers() {
-        Long issuerId = 1L;
+        Long issuerId = SecurityUtils.getCurrentAccountId();
         List<DTO_Voucher> result = voucherService.getIssuersVouchers(issuerId);
         return ResponseEntity.ok(result);
     }
@@ -95,7 +102,8 @@ public class VoucherController {
     @PostMapping("/redeem/{voucherId}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<RESULT_CODE> redeemVoucher(@PathVariable Long voucherId) {
-        UserAccount user = new UserAccount();
+        Long userId = SecurityUtils.getCurrentAccountId();
+        UserAccount user = (UserAccount) accountService.findAccountById(userId).orElseThrow();
         try {
             RESULT_CODE result = redeemTransactionManager.redeemVoucher(voucherId, user);
             switch (result) {
@@ -115,6 +123,7 @@ public class VoucherController {
     }
 
     @GetMapping("/images/{imgName}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Resource> getImage(@PathVariable String imgName) {
         Optional<Resource> image = ImgService.getImage("DIR", imgName);
         return image.map(resource -> new ResponseEntity<>(resource, HttpStatus.OK))

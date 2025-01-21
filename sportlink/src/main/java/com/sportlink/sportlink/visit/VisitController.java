@@ -1,8 +1,10 @@
 package com.sportlink.sportlink.visit;
 
+import com.sportlink.sportlink.account.account.AccountService;
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.location.DTO_Location;
 import com.sportlink.sportlink.location.LocationService;
+import com.sportlink.sportlink.security.SecurityUtils;
 import com.sportlink.sportlink.utils.RESULT_CODE;
 import com.sportlink.sportlink.verification.location.DTO_LocationVerificationRequest;
 import lombok.AllArgsConstructor;
@@ -23,23 +25,20 @@ public class VisitController {
     private final VisitService visitService;
     private final LocationService locationService;
     private final VisitTransactionManager visitTransactionManager;
+    private final AccountService accountService;
 
-    @PostMapping
-    public ResponseEntity<DTO_Visit> saveVisit(@RequestBody DTO_Visit dtoVisit, @RequestParam UserAccount userAccount) {
-        DTO_Visit savedVisit = visitService.saveVisit(dtoVisit, userAccount);
-        return ResponseEntity.ok(savedVisit);
-    }
-
-    @GetMapping("/user/{userId}")
+    @GetMapping("/user")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<List<DTO_Visit>> getVisitsForUser(@PathVariable Long userId) {
+    public ResponseEntity<List<DTO_Visit>> getVisitsForUser() {
+        Long userId = SecurityUtils.getCurrentAccountId();
         List<DTO_Visit> visits = visitService.getVisitsForUser(userId);
         return ResponseEntity.ok(visits);
     }
 
-    @GetMapping("/company/{companyId}")
+    @GetMapping("/company")
     @PreAuthorize("hasRole('COMPANY')")
-    public ResponseEntity<List<DTO_Visit>> getVisitsForCompany(@PathVariable Long companyId) {
+    public ResponseEntity<List<DTO_Visit>> getVisitsForCompany() {
+        Long companyId = SecurityUtils.getCurrentAccountId();
         List<DTO_Visit> visits = visitService.getVisitsForCompany(companyId);
         return ResponseEntity.ok(visits);
     }
@@ -54,7 +53,13 @@ public class VisitController {
     @PostMapping("/open")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<RESULT_CODE> openVisit(@RequestBody DTO_VisitRequest request) {
-        UserAccount acc = new UserAccount();
+        Long accountId = SecurityUtils.getCurrentAccountId();
+        UserAccount acc = null;
+        try {
+            acc = (UserAccount) accountService.findAccountById(accountId).orElseThrow();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
         Optional<DTO_Location> opt = locationService.findLocationById(request.getLocationId());
         if (opt.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -94,8 +99,9 @@ public class VisitController {
     @PostMapping("/close")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<RESULT_CODE> closeVisit(@RequestBody DTO_LocationVerificationRequest request) {
-        UserAccount acc = new UserAccount();
         try {
+            Long accountId = SecurityUtils.getCurrentAccountId();
+            UserAccount acc = (UserAccount) accountService.findAccountById(accountId).orElseThrow();
             RESULT_CODE result = visitTransactionManager.closeVisit(acc, request);
             switch (result) {
                 case VISIT_CLOSED -> {

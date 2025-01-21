@@ -3,6 +3,7 @@ package com.sportlink.sportlink.location;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.reward.DTO_Reward;
 import com.sportlink.sportlink.reward.Reward;
+import com.sportlink.sportlink.security.SecurityUtils;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import com.sportlink.sportlink.utils.ImgService;
 import jakarta.validation.Valid;
@@ -83,6 +84,7 @@ public class LocationController {
     }
 
     @GetMapping("/{locationId}/reward")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<DTO_Reward>> getRewardsForLocation(@PathVariable Long locationId) {
         try {
             List<Reward> rewards = locationService.getRewardsForLocation(locationId);
@@ -108,6 +110,7 @@ public class LocationController {
      * Find a location by ID
      */
     @GetMapping("/{id}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<DTO_Location> getLocationById(@PathVariable Long id) {
         Optional<DTO_Location> location = locationService.findLocationById(id);
         return location.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
@@ -120,6 +123,7 @@ public class LocationController {
      * @return
      */
     @GetMapping("/activities")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<DTO_Location>> getLocationsWithActivities(@RequestBody List<ACTIVITY> activities) {
         Set<DTO_Location> result = locationService.findByActivities(activities);
         return ResponseEntity.ok(result.stream().toList());
@@ -129,6 +133,7 @@ public class LocationController {
      * Find nearby locations based on longitude, latitude, and radius
      */
     @GetMapping("/nearby")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<DTO_Location>> getNearbyLocations(
             @RequestParam double longitude,
             @RequestParam double latitude,
@@ -139,6 +144,7 @@ public class LocationController {
     }
 
     @GetMapping("/for-company/{companyId}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<DTO_Location>> getLocationsForCompany(@PathVariable Long companyId) {
         List<DTO_Location> result = locationService.findByIssuerId(companyId);
         return ResponseEntity.ok(result);
@@ -148,7 +154,7 @@ public class LocationController {
     @PostMapping("/{locationId}/images")
     @PreAuthorize("hasAnyRole('ADMIN','COMPANY')")
     public ResponseEntity<String> uploadImage(@PathVariable long locationId, @RequestParam("image") MultipartFile image) {
-        Long accountId = 1L;
+        Long accountId = SecurityUtils.getCurrentAccountId();
         boolean isAllowed = locationService.allowModification(accountId, locationId);
         if (!isAllowed) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -162,6 +168,7 @@ public class LocationController {
     }
 
     @GetMapping("/images/{imgName}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Resource> getImage(@PathVariable String imgName) {
         Optional<Resource> image = ImgService.getImage("DIR", imgName);
         return image.map(resource -> new ResponseEntity<>(resource, HttpStatus.OK))
@@ -172,7 +179,7 @@ public class LocationController {
     @DeleteMapping("/{locationId}/images/{filename}")
     @PreAuthorize("hasAnyRole('ADMIN','COMPANY')")
     public ResponseEntity<String> deleteImage(@PathVariable long locationId, @PathVariable String filename) {
-        Long accountId = 1L;
+        Long accountId = SecurityUtils.getCurrentAccountId();
         boolean isAllowed = locationService.allowModification(accountId, locationId);
         if (!isAllowed) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

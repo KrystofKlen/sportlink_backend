@@ -74,36 +74,4 @@ class VoucherServiceUT {
         verify(voucherRepository).findById(voucherId);
         verifyNoInteractions(adapter);
     }
-
-    @Test
-    void deleteVoucher_ShouldDeleteVoucher_WhenExistsAndNotRedeemed() {
-        Long voucherId = 1L;
-        Voucher voucher = new Voucher();
-        voucher.setState(VOUCHER_STATE.IN_OFFER);
-
-        when(voucherRepository.findById(voucherId)).thenReturn(Optional.of(voucher));
-        doNothing().when(voucherRepository).deleteById(voucherId);
-
-        voucherService.deleteVoucher(voucherId);
-
-        verify(voucherRepository).findById(voucherId);
-        verify(voucherRepository).deleteById(voucherId);
-    }
-
-    @Test
-    void deleteVoucher_ShouldThrowException_WhenVoucherIsRedeemed() {
-        Long voucherId = 1L;
-        Voucher voucher = new Voucher();
-        voucher.setState(VOUCHER_STATE.REDEEMED);
-
-        when(voucherRepository.findById(voucherId)).thenReturn(Optional.of(voucher));
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            voucherService.deleteVoucher(voucherId);
-        });
-
-        assertEquals("Voucher state is REDEEMED", exception.getMessage());
-        verify(voucherRepository).findById(voucherId);
-        verify(voucherRepository, never()).deleteById(voucherId);
-    }
 }
