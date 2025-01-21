@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -103,6 +104,29 @@ public class RewardServiceIT {
         assertTrue(foundReward.isPresent());
         assertEquals(savedReward.getId(), foundReward.get().getId());
         assertEquals(savedReward.getAmount(), foundReward.get().getAmount());
+    }
+
+    @Test
+    void testMonthlyClaimReset() {
+        // Save a reward
+        DTO_Reward savedReward = rewardService.save(reward);
+
+        // Manually increment monthClaimsCount
+        Optional<Reward> reward = rewardRepository.findById(savedReward.getId());
+        assertThat(reward).isPresent();
+        Reward foundReward = reward.get();
+        foundReward.setMonthClaimsCount(10);
+        rewardRepository.save(foundReward);
+
+        // Verify the count before reset
+        assertThat(foundReward.getMonthClaimsCount()).isEqualTo(10);
+
+        // Simulate the reset logic (e.g., call a method in your service)
+        rewardService.resetMonthlyClaims();
+
+        // Fetch the updated reward
+        Reward resetReward = rewardRepository.findById(savedReward.getId()).orElseThrow();
+        assertThat(resetReward.getMonthClaimsCount()).isEqualTo(0);
     }
 
 }

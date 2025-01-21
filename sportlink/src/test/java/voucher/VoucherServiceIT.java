@@ -1,6 +1,7 @@
 package voucher;
 
 import com.sportlink.sportlink.SportlinkApplication;
+import com.sportlink.sportlink.account.ROLE;
 import com.sportlink.sportlink.account.account.I_AccountRepository;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.currency.Currency;
@@ -38,6 +39,7 @@ public class VoucherServiceIT {
         // Setup test data
         issuerAccount = new CompanyAccount();
         issuerAccount.setName("issuer");
+        issuerAccount.setRole(ROLE.COMPANY);
         issuerAccount = accountRepository.save(issuerAccount);
 
         currency = new Currency();

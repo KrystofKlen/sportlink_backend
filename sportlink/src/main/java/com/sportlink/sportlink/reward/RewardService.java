@@ -8,6 +8,7 @@ import com.sportlink.sportlink.verification.reward.RewardVerificationFactory;
 import com.sportlink.sportlink.visit.DTO_Visit;
 import com.sportlink.sportlink.visit.Visit;
 import jakarta.validation.Valid;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -102,5 +103,14 @@ public class RewardService {
             }
         });
         return approvedRewards;
+    }
+
+    @Scheduled(cron = "0 0 0 1 * ?") // Runs at midnight on the 1st day of every month
+    public void resetMonthlyClaims() {
+        List<Reward> rewards = rewardRepository.findAll();
+        for (Reward reward : rewards) {
+            reward.setMonthClaimsCount(0); // Reset the count
+        }
+        rewardRepository.saveAll(rewards);
     }
 }
