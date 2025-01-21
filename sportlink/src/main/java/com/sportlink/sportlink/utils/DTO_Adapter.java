@@ -8,6 +8,8 @@ import com.sportlink.sportlink.account.user.DTO_UserAccount;
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.comment.DTO_Review;
 import com.sportlink.sportlink.comment.Review;
+import com.sportlink.sportlink.consent.Consent;
+import com.sportlink.sportlink.consent.DTO_Consent;
 import com.sportlink.sportlink.currency.Currency;
 import com.sportlink.sportlink.location.DTO_Location;
 import com.sportlink.sportlink.location.Location;
@@ -153,6 +155,15 @@ public class DTO_Adapter {
                 account.getRole(),
                 account.getProfilePicUUID(),
                 account.getStatus()
+        );
+    }
+
+    public DTO_Consent getDTO_Consent(Consent consent) {
+        return new DTO_Consent(
+                consent.getAccount().getId(),
+                consent.getAgreement().getAgreement(),
+                consent.getConsentGivenAt(),
+                consent.getConsentExpiredAt()
         );
     }
 
