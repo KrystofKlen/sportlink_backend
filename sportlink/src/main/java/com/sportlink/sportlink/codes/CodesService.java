@@ -16,6 +16,7 @@ import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.socket.WebSocketHandler;
 import com.sportlink.sportlink.utils.EmailSender;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.awt.image.BufferedImage;
@@ -23,9 +24,9 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class CodesService {
 
-    public static final int EXPIRE_TIME_MIN = 1;
     private final RedisService redisService;
     private final WebSocketHandler webSocketHandler;
     private final I_AccountRepository accountRepository;
@@ -34,11 +35,11 @@ public class CodesService {
     // sends code to location, where it will be scanned by user
     public String sendLocationOTP(long locationId, long userId) {
         String code = EncryptionUtil.generateRandomSequence(10);
-        ;
         String payload = Long.toString(userId);
         redisService.saveValueWithExpiration(code, payload, 1);
         // send to location
         webSocketHandler.sendCodeToLocation(locationId, code);
+        log.info("Send location OTP code: " + code + " locationId: " + locationId + " userId: " + userId);
         return code;
     }
 
@@ -50,6 +51,7 @@ public class CodesService {
         emailSender.sendOtpPasswordChangeEmail(email, otp);
         String token = EncryptionUtil.generateRandomSequence(30);
         redisService.saveValueWithExpiration(token, otp, 2);
+        log.info("Send code for OTP code: " + otp + " token: " + token);
         return token;
     }
 

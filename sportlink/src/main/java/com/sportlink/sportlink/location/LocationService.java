@@ -11,6 +11,7 @@ import com.sportlink.sportlink.verification.I_VerificationStrategy;
 import com.sportlink.sportlink.verification.location.DTO_LocationVerificationRequest;
 import com.sportlink.sportlink.verification.location.LocationVerificationFactory;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class LocationService {
 
     private final I_LocationRepository locationRepository;
@@ -44,7 +46,10 @@ public class LocationService {
         }
         Location location = adapter.getLocationFromDTO(dtoLocation);
         location.setIssuer(companyAccount);
-        return adapter.getDTO_Location(locationRepository.save(location));
+        Location savedLocation = locationRepository.save(location);
+        DTO_Location dto = adapter.getDTO_Location(savedLocation);
+        log.info("Saved location: " + dto);
+        return dto;
     }
 
     // This method will update only those variable which are != null
@@ -84,7 +89,10 @@ public class LocationService {
         }
 
         // 4. Save the updated entity
-        return adapter.getDTO_Location(locationRepository.save(existingLocation));
+        Location updatedLocation = locationRepository.save(existingLocation);
+        DTO_Location dto = adapter.getDTO_Location(updatedLocation);
+        log.info("Updated location: " + dto);
+        return dto;
     }
 
     @Transactional
@@ -150,6 +158,7 @@ public class LocationService {
 
         location.getRewards().add(reward);
         Location saved = locationRepository.save(location);
+        log.info("New reward added: " + dto + " for Location: " + locationId);
         return adapter.getDTO_Location(saved);
     }
 
@@ -160,6 +169,7 @@ public class LocationService {
                 .stream().filter(r -> r.getId() == rewardId).findFirst().orElseThrow();
         location.getRewards().remove(reward);
         locationRepository.save(location);
+        log.info("Reward deleted: " + reward);
     }
 
     public boolean allowModification(long accountId, long locationId) {

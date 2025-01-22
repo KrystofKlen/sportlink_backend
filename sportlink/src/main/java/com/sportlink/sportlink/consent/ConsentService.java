@@ -4,6 +4,7 @@ import com.sportlink.sportlink.account.account.Account;
 import com.sportlink.sportlink.account.account.AccountService;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -13,6 +14,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ConsentService {
 
     private final ConsentRepository consentRepository;
@@ -28,6 +30,7 @@ public class ConsentService {
         }
         Consent consent = new Consent(null, optAcc.get(), optAgr.get(), LocalDateTime.now(), null);
         consent = consentRepository.save(consent);
+        log.info("Consent added: " + consent );
         return true;
     }
 
@@ -36,6 +39,7 @@ public class ConsentService {
         agreement.setAgreement(text);
         agreement.setEndDate(endDate);
         agreementRepository.save(agreement);
+        log.info("Agreement added: " + agreement );
     }
 
     public List<DTO_Consent> getAccountsConsents(Long accountId){

@@ -5,6 +5,7 @@ import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import com.sportlink.sportlink.utils.ImgService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,9 +13,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class AccountService {
 
     public final I_AccountRepository accountRepository;
@@ -26,7 +29,9 @@ public class AccountService {
     // Create or Update UserAccount
     @Transactional
     public Account save(Account account) {
-        return accountRepository.save(account);
+        Account acc = accountRepository.save(account);
+        log.info("New account added: " + acc);
+        return acc;
     }
 
     // Find UserAccount by ID
@@ -63,6 +68,7 @@ public class AccountService {
         String saltedPassword = passwordEncoder.encode(newPassword + salt);
         account.get().setSalt(salt);
         account.get().setPassword(saltedPassword);
+        log.info("Password changed: accountId = " + account.get().getId());
         return true;
     }
 
@@ -71,6 +77,7 @@ public class AccountService {
     @Transactional
     public void deleteAccount(Long id) {
         accountRepository.deleteById(id);
+        log.info("Account deleted: " + id);
     }
 
     @Transactional

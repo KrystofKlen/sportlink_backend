@@ -13,6 +13,7 @@ import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.utils.PayloadParser;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class RegistrationService {
 
     private final UserAccountService userAccountService;
@@ -50,6 +52,8 @@ public class RegistrationService {
         redisService.saveValueWithExpiration(registrationData.getLoginEmail(), otp, 2);
         redisService.saveValueWithExpiration(registrationData.getUsername(), payload, 2);
 
+        log.info("Registration started for account: " + registrationData.getUsername());
+
         return otp;
     }
 
@@ -76,6 +80,8 @@ public class RegistrationService {
                 userRegistration.getDateOfBirth());
 
         accountService.save(userAccount);
+
+        log.info("Account added - username:" + userAccount.getUsername() + " id:" + userAccount.getId() );
     }
 
     @Transactional
@@ -100,8 +106,12 @@ public class RegistrationService {
                 registrationData.getContactEmail(),
                 registrationData.getWebsiteUrl()
         );
+
         // save
         Account saved = accountService.save(companyAccount);
+
+        log.info("Company account registration requested - username:" + saved.getUsername() + " id:" + saved.getId() );
+
         return saved.getId();
     }
 

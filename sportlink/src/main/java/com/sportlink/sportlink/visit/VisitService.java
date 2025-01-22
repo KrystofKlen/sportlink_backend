@@ -4,6 +4,7 @@ import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.location.Location;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class VisitService {
 
     private final I_VisitRepository visitRepository;
@@ -58,6 +60,7 @@ public class VisitService {
         // create Visit
         Visit visit = new Visit(null, location, LocalDateTime.now(), null, VisitState.OPEN, visitor);
         visit = visitRepository.save(visit);
+
         return Optional.of(adapter.getDTO_Visit(visit));
     }
 
@@ -73,6 +76,9 @@ public class VisitService {
         // finalize visit
         last.setTimestampStop(LocalDateTime.now());
         last.setState(VisitState.CLOSED);
+
+        log.info("Visit closed: Id = " + last.getVisitId() + " userId = " + userId);
+
         return Optional.of(visitRepository.save(last));
     }
 }

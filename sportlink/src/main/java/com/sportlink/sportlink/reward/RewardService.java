@@ -8,6 +8,7 @@ import com.sportlink.sportlink.verification.reward.RewardVerificationFactory;
 import com.sportlink.sportlink.visit.DTO_Visit;
 import com.sportlink.sportlink.visit.Visit;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class RewardService {
 
     private final I_RewardRepository rewardRepository;
@@ -46,7 +48,13 @@ public class RewardService {
                 dto.getIntervals(),
                 dto.getMinMinutesSpent()
         );
-        return adapter.getDTO_Reward(rewardRepository.save(reward));
+
+        Reward saved = rewardRepository.save(reward);
+        DTO_Reward dtoSaved = adapter.getDTO_Reward(saved);
+
+        log.info("Reward saved: " + dtoSaved);
+
+        return dtoSaved;
     }
 
     // only those with not null value updated
@@ -72,6 +80,11 @@ public class RewardService {
         if (dto.getMinMinutesSpent() != null) {
             existing.setMinMinuteSpend(dto.getMinMinutesSpent());
         }
+
+        Reward saved = rewardRepository.save(existing);
+        DTO_Reward dtoSaved = adapter.getDTO_Reward(saved);
+
+        log.info("Reward updated: Id = " + existing.getId());
 
         return adapter.getDTO_Reward(rewardRepository.save(existing));
     }

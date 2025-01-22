@@ -13,6 +13,7 @@ import com.sportlink.sportlink.transfer.I_TransferRepository;
 import com.sportlink.sportlink.transfer.Transfer;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +29,7 @@ import java.util.UUID;
 import static com.sportlink.sportlink.voucher.VOUCHER_STATE.IN_OFFER;
 
 @Service
+@Slf4j
 public class VoucherService {
 
     private final I_CurrencyRepository currencyRepository;
@@ -65,7 +67,10 @@ public class VoucherService {
         String code = EncryptionUtil.encrypt(dto.getCode());
         voucher.setCode(code);
 
-        return adapter.getDTO_Voucher(voucherRepository.save(voucher));
+        Voucher saved = voucherRepository.save(voucher);
+        log.info("Voucher added: issuerId = " + issuer.getId() + saved.getId());
+
+        return adapter.getDTO_Voucher(saved);
     }
 
     public String revealCode(Long voucherId, Long userId) throws Exception {
@@ -73,6 +78,7 @@ public class VoucherService {
         if( voucher.getBuyer().getId() != userId){
             throw new Exception();
         }
+        log.info("Code revealed: userId = " + userId + " voucherId = " + voucherId);
         return EncryptionUtil.decrypt(voucher.getCode());
     }
 
@@ -120,6 +126,7 @@ public class VoucherService {
         } else {
             throw new RuntimeException("Not authorized");
         }
+        log.info("Voucher deleted: " + existingVoucherOpt.get());
     }
 
     public List<String> saveImages(List<MultipartFile> images) throws Exception {
