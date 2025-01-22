@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -34,15 +35,15 @@ public class Location {
     private Set<LOCATION_VERIFICATION_STRATEGY> verificationStrategies;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<Reward> rewards;
+    private List<Reward> rewards = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
-    private List<String> imagesUUID;
+    private List<String> imagesUUID = new ArrayList<>();
 
     @Column(unique = true)
     private String code;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     private CompanyAccount issuer;
 
     public Location(Long id,

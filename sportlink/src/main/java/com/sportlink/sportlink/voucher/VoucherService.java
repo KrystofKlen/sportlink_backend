@@ -47,9 +47,10 @@ public class VoucherService {
     }
 
     @Transactional
-    public DTO_Voucher addVoucher(CompanyAccount issuer, DTO_Voucher dto, List<MultipartFile> images) throws Exception {
+    public DTO_Voucher addVoucher(Long issuerId, DTO_Voucher dto, List<MultipartFile> images) throws Exception {
 
         List<String> uuids = saveImages(images);
+        CompanyAccount issuer = (CompanyAccount) accountRepository.findById(issuerId).orElseThrow();
 
         // add voucher
         Currency currency = currencyRepository.findByIssuer(issuer.getId()).orElseThrow();
@@ -68,7 +69,7 @@ public class VoucherService {
         voucher.setCode(code);
 
         Voucher saved = voucherRepository.save(voucher);
-        log.info("Voucher added: issuerId = " + issuer.getId() + saved.getId());
+        log.info("Voucher added: issuerId = " + issuer.getId() + " , saved voucherId = " + saved.getId());
 
         return adapter.getDTO_Voucher(saved);
     }

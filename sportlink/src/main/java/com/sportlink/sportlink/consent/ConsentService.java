@@ -21,6 +21,7 @@ public class ConsentService {
     private final AgreementRepository agreementRepository;
     private final AccountService accountService;
     private final DTO_Adapter adapter;
+    public static final Long GDPR_AGREEMENT_ID = 1L;
 
     public boolean addConsent(Long accountId, Long agreementId){
         Optional<Account> optAcc = accountService.findAccountById(accountId);

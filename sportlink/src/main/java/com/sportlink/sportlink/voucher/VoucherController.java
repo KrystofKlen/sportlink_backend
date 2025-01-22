@@ -35,8 +35,7 @@ public class VoucherController {
     public ResponseEntity<DTO_Voucher> createVoucher(@RequestBody DTO_Voucher voucher, @RequestBody List<MultipartFile> images) {
         try {
             Long compId = SecurityUtils.getCurrentAccountId();;
-            CompanyAccount account = (CompanyAccount) accountService.findAccountById(compId).get();
-            DTO_Voucher createdVoucher = voucherService.addVoucher(account, voucher, images);
+            DTO_Voucher createdVoucher = voucherService.addVoucher(compId, voucher, images);
             return new ResponseEntity<>(createdVoucher, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);

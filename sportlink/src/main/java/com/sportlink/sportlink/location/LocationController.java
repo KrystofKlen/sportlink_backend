@@ -32,10 +32,10 @@ public class LocationController {
      * Create a new location
      */
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','COMPANY')")
+    @PreAuthorize("hasRole('COMPANY')")
     public ResponseEntity<DTO_Location> createLocation(@Valid @RequestBody DTO_Location dtoLocation) {
-        CompanyAccount acc = new CompanyAccount();
-        DTO_Location savedLocation = locationService.saveLocation(dtoLocation, acc);
+        Long issuerId = SecurityUtils.getCurrentAccountId();
+        DTO_Location savedLocation = locationService.saveLocation(dtoLocation, issuerId);
         return ResponseEntity.ok(savedLocation);
     }
 

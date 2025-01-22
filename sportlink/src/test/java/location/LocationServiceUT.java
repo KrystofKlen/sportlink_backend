@@ -1,5 +1,6 @@
 package location;
 
+import com.sportlink.sportlink.account.account.AccountService;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.location.*;
 import com.sportlink.sportlink.utils.DTO_Adapter;
@@ -31,6 +32,9 @@ public class LocationServiceUT {
     @InjectMocks
     private LocationService locationService;
 
+    @Mock
+    private AccountService accountService;
+
     @BeforeEach
     public void setUp() {
         companyAccount = mock(CompanyAccount.class);
@@ -40,10 +44,11 @@ public class LocationServiceUT {
     void testSaveLocationWithEmptyVerificationStrategies() {
         DTO_Location dtoLocation = new DTO_Location();
         dtoLocation.setVerificationStrategies(Set.of());
+        when(accountService.findAccountById(any())).thenReturn(Optional.of(companyAccount));
 
         // Ensure IllegalArgumentException is thrown if no strategies are provided
         IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
-            locationService.saveLocation(dtoLocation, companyAccount);
+            locationService.saveLocation(dtoLocation, companyAccount.getId());
         });
 
         assertEquals("No verification strategy found", thrown.getMessage());
@@ -54,10 +59,11 @@ public class LocationServiceUT {
         DTO_Location dtoLocation = mock(DTO_Location.class);
         Location location = mock(Location.class);
 
+        when(accountService.findAccountById(any())).thenReturn(Optional.of(companyAccount));
         when(dtoLocation.getVerificationStrategies()).thenReturn(Set.of(LOCATION_VERIFICATION_STRATEGY.USER_WITHIN_RADIUS));
         when(adapter.getLocationFromDTO(dtoLocation)).thenReturn(location);
 
-        locationService.saveLocation(dtoLocation, companyAccount);
+        locationService.saveLocation(dtoLocation, companyAccount.getId());
 
         verify(locationRepository).save(location);
     }

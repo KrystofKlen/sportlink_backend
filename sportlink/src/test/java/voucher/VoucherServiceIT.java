@@ -59,7 +59,7 @@ public class VoucherServiceIT {
         dtoVoucher.setCode("TESTCODE123");
 
         // Call service method
-        DTO_Voucher result = voucherService.addVoucher(issuerAccount, dtoVoucher, List.of());
+        DTO_Voucher result = voucherService.addVoucher(issuerAccount.getId(), dtoVoucher, List.of());
 
         // Assertions
         assertThat(result).isNotNull();
@@ -77,7 +77,7 @@ public class VoucherServiceIT {
         dtoVoucher.setExpirationDate(LocalDate.now().plusDays(1));
         dtoVoucher.setCode("TESTCODE123");
 
-        DTO_Voucher savedVoucher = voucherService.addVoucher(issuerAccount, dtoVoucher, List.of());
+        DTO_Voucher savedVoucher = voucherService.addVoucher(issuerAccount.getId(), dtoVoucher, List.of());
 
         // Fetch the voucher
         Optional<DTO_Voucher> fetchedVoucher = voucherService.getVoucher(savedVoucher.getId());
@@ -99,7 +99,7 @@ public class VoucherServiceIT {
         dtoVoucher.setExpirationDate(LocalDate.now().plusDays(1));
         dtoVoucher.setCode("TESTCODE123");
 
-        DTO_Voucher savedVoucher = voucherService.addVoucher(issuerAccount, dtoVoucher, List.of());
+        DTO_Voucher savedVoucher = voucherService.addVoucher(issuerAccount.getId(), dtoVoucher, List.of());
 
         // Delete the voucher
         voucherService.deleteVoucher(savedVoucher.getId(), issuerAccount.getId());
@@ -119,7 +119,7 @@ public class VoucherServiceIT {
         dtoVoucher.setExpirationDate(LocalDate.now().plusDays(1));
         dtoVoucher.setCode("TESTCODE123");
 
-        voucherService.addVoucher(issuerAccount, dtoVoucher, List.of());
+        voucherService.addVoucher(issuerAccount.getId(), dtoVoucher, List.of());
 
         // Fetch vouchers in offer
         List<DTO_Voucher> vouchersInOffer = voucherService.getVouchersInOffer(0, 10).getContent();

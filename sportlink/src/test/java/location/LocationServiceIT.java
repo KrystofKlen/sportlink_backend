@@ -1,8 +1,10 @@
 package location;
 
 import com.sportlink.sportlink.SportlinkApplication;
+import com.sportlink.sportlink.account.account.I_AccountRepository;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.currency.Currency;
+import com.sportlink.sportlink.currency.I_CurrencyRepository;
 import com.sportlink.sportlink.location.*;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import com.sportlink.sportlink.verification.location.LOCATION_VERIFICATION_STRATEGY;
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,8 +35,13 @@ public class LocationServiceIT {
     private Location location;
 
     private CompanyAccount companyAccount;
+    @Autowired
+    private I_AccountRepository i_AccountRepository;
+    @Autowired
+    private I_CurrencyRepository i_CurrencyRepository;
 
     @BeforeEach
+    @Transactional
     public void setUp() {
         // Set up the initial Location entity and DTO_Location.
         location = new Location();
@@ -47,16 +55,18 @@ public class LocationServiceIT {
 
         companyAccount = new CompanyAccount();
         companyAccount.setName("Test Company Account");
+        companyAccount = i_AccountRepository.save(companyAccount);
 
         Currency currency = new Currency();
         currency.setName("AAA");
         currency.setIssuer(companyAccount);
+        currency = i_CurrencyRepository.save(currency);
     }
 
     @Test
     public void testSaveLocation() {
         // Save the DTO Location via LocationService
-        DTO_Location savedLocation = locationService.saveLocation(dtoLocation, companyAccount);
+        DTO_Location savedLocation = locationService.saveLocation(dtoLocation, companyAccount.getId());
 
         // Assert that the Location is saved and the DTO returned is not null
         assertNotNull(savedLocation);
@@ -71,7 +81,7 @@ public class LocationServiceIT {
     @Test
     public void testUpdateLocation() {
         // First save the Location to have it in the database
-        DTO_Location savedLocation = locationService.saveLocation(dtoLocation, companyAccount);
+        DTO_Location savedLocation = locationService.saveLocation(dtoLocation, companyAccount.getId());
 
         // Now update the Location data
         savedLocation.setName("Updated Location");
@@ -105,7 +115,7 @@ public class LocationServiceIT {
     @Test
     public void testDeleteLocation() {
         // First save the Location to the repository
-        DTO_Location savedLocation = locationService.saveLocation(dtoLocation, companyAccount);
+        DTO_Location savedLocation = locationService.saveLocation(dtoLocation, companyAccount.getId());
 
         // Now delete the Location
         locationService.deleteLocation(savedLocation.getId());
@@ -118,7 +128,7 @@ public class LocationServiceIT {
     @Test
     public void testFindLocationById() {
         // First save the Location to the repository
-        DTO_Location savedLocation = locationService.saveLocation(dtoLocation, companyAccount);
+        DTO_Location savedLocation = locationService.saveLocation(dtoLocation, companyAccount.getId());
 
         // Retrieve the Location by ID
         Optional<DTO_Location> foundLocation = locationService.findLocationById(savedLocation.getId());
@@ -142,7 +152,7 @@ public class LocationServiceIT {
         // First save a location with specific coordinates to the repository
         dtoLocation.setLongitude(10.0);
         dtoLocation.setLatitude(20.0);
-        locationService.saveLocation(dtoLocation, companyAccount);
+        locationService.saveLocation(dtoLocation, companyAccount.getId());
 
         // Find locations within a certain radius
         List<DTO_Location> nearbyLocations = locationService.findNearbyLocations(10.0, 20.0, 5);

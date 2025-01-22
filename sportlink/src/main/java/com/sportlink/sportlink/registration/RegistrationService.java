@@ -6,6 +6,7 @@ import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.account.user.DTO_UserAccount;
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.account.user.UserAccountService;
+import com.sportlink.sportlink.consent.ConsentService;
 import com.sportlink.sportlink.currency.Currency;
 import com.sportlink.sportlink.currency.I_CurrencyRepository;
 import com.sportlink.sportlink.redis.RedisService;
@@ -30,6 +31,7 @@ public class RegistrationService {
     private final I_CurrencyRepository currencyRepository;
     private final RedisService redisService;
     private final AccountService accountService;
+    private final ConsentService consentService;
 
     @Transactional
     public String startRegistration(DTO_UserRegistration registrationData) {
@@ -79,7 +81,8 @@ public class RegistrationService {
                 userRegistration.getLastName(),
                 userRegistration.getDateOfBirth());
 
-        accountService.save(userAccount);
+        Account account = accountService.save(userAccount);
+        consentService.addConsent(account.getId(), ConsentService.GDPR_AGREEMENT_ID);
 
         log.info("Account added - username:" + userAccount.getUsername() + " id:" + userAccount.getId() );
     }
@@ -109,6 +112,12 @@ public class RegistrationService {
 
         // save
         Account saved = accountService.save(companyAccount);
+
+        // create currency
+        Currency currency = new Currency();
+        currency.setIssuer(saved);
+        currency.setName(registrationData.getCurrencyName());
+        currencyRepository.save(currency);
 
         log.info("Company account registration requested - username:" + saved.getUsername() + " id:" + saved.getId() );
 

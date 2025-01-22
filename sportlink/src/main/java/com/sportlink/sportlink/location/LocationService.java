@@ -1,5 +1,6 @@
 package com.sportlink.sportlink.location;
 
+import com.sportlink.sportlink.account.account.AccountService;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.currency.Currency;
 import com.sportlink.sportlink.currency.I_CurrencyRepository;
@@ -29,23 +30,27 @@ public class LocationService {
     private final DTO_Adapter adapter;
     private final LocationVerificationFactory verificationFactory;
     public static final double MAX_DEVIATION = 0.5;
+    private final AccountService accountService;
 
     @Autowired
-    public LocationService(I_LocationRepository locationRepository, I_CurrencyRepository currencyRepository, DTO_Adapter adapter, LocationVerificationFactory verificationFactory) {
+    public LocationService(I_LocationRepository locationRepository, I_CurrencyRepository currencyRepository, DTO_Adapter adapter, LocationVerificationFactory verificationFactory, AccountService accountService) {
         this.locationRepository = locationRepository;
         this.currencyRepository = currencyRepository;
         this.adapter = adapter;
         this.verificationFactory = verificationFactory;
+        this.accountService = accountService;
     }
 
     @Transactional
-    public DTO_Location saveLocation(@Valid DTO_Location dtoLocation, CompanyAccount companyAccount) {
+    public DTO_Location saveLocation(@Valid DTO_Location dtoLocation, Long issuerId) {
+
+        CompanyAccount issuer = (CompanyAccount) accountService.findAccountById(issuerId).orElseThrow();
 
         if (dtoLocation.getVerificationStrategies().isEmpty()) {
             throw new IllegalArgumentException("No verification strategy found");
         }
         Location location = adapter.getLocationFromDTO(dtoLocation);
-        location.setIssuer(companyAccount);
+        location.setIssuer(issuer);
         Location savedLocation = locationRepository.save(location);
         DTO_Location dto = adapter.getDTO_Location(savedLocation);
         log.info("Saved location: " + dto);

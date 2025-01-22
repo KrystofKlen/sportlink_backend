@@ -4,8 +4,11 @@ import com.sportlink.sportlink.SportlinkApplication;
 import com.sportlink.sportlink.account.account.ACCOUNT_STATUS;
 import com.sportlink.sportlink.account.account.Account;
 import com.sportlink.sportlink.account.account.AccountService;
+import com.sportlink.sportlink.account.account.DTO_Account;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.account.user.UserAccountService;
+import com.sportlink.sportlink.consent.ConsentService;
+import com.sportlink.sportlink.consent.DTO_Consent;
 import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.registration.DTO_CompanyRegistration;
 import com.sportlink.sportlink.registration.DTO_UserRegistration;
@@ -21,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,6 +52,9 @@ public class UserAccountRegistrationIT {
     @Autowired
     private AccountService accountService;
 
+    @Autowired
+    private ConsentService consentService;
+
     @Spy
     private EmailSender emailSender;
 
@@ -65,6 +73,11 @@ public class UserAccountRegistrationIT {
         registrationData.setFirstName("Test");
         registrationData.setLastName("User");
 
+        // Create an Agreement before testing consent
+        String agreementText = "GDPR Agreement Text";
+        LocalDate endDate = LocalDate.now().plusYears(1); // Example end date for agreement
+        consentService.addAgreement(agreementText, endDate);
+
         // Start registration
         doNothing().when(emailSender).sendHtmlEmail(any(), any(), any());
 
@@ -80,6 +93,14 @@ public class UserAccountRegistrationIT {
         assertEquals(registrationData.getFirstName(), registered.getFirstName());
         assertEquals(registrationData.getLastName(), registered.getLastName());
         assertEquals(registrationData.getLoginEmail(), registered.getLoginEmail());
+
+        registrationService.completeRegistration("testuser", otp);
+
+        // check consent
+        Optional<Account> account = accountService.findAccountByEmail("testuser@example.com");
+        assertNotNull(account.orElse(null));
+        List<DTO_Consent> consents = consentService.getAccountsConsents(account.get().getId());
+        assertEquals(1, consents.size());
     }
 
     @Test
@@ -106,6 +127,11 @@ public class UserAccountRegistrationIT {
         registrationData.setLoginEmail("invalidotp@example.com");
         registrationData.setUsername("invalidotpuser");
         registrationData.setPassword("securePassword123");
+
+        // Create an Agreement before testing consent
+        String agreementText = "GDPR Agreement Text";
+        LocalDate endDate = LocalDate.now().plusYears(1); // Example end date for agreement
+        consentService.addAgreement(agreementText, endDate);
 
         // Start registration
         registrationService.startRegistration(registrationData);
