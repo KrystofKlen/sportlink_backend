@@ -48,4 +48,7 @@ public class ConsentService {
         return consents.stream().map(adapter::getDTO_Consent).toList();
     }
 
+    public String getAgreementText(Long agreementId){
+        return agreementRepository.findById(agreementId).orElseThrow().getAgreement();
+    }
 }

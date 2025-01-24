@@ -1,5 +1,7 @@
 package com.sportlink.sportlink.account;
 
 public enum ROLE {
-    USER, ADMIN, COMPANY
+    ROLE_USER,
+    ROLE_ADMIN,
+    ROLE_COMPANY
 }

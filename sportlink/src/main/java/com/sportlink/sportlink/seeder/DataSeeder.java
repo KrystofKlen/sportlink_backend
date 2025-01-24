@@ -15,15 +15,18 @@ import com.sportlink.sportlink.voucher.DTO_Voucher;
 import com.sportlink.sportlink.voucher.VOUCHER_STATE;
 import com.sportlink.sportlink.voucher.VoucherService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.*;
 
+@Slf4j
 @Component
-@Profile("tester")
+@Profile("postman")
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
@@ -31,6 +34,7 @@ public class DataSeeder implements CommandLineRunner {
     private final I_CurrencyRepository i_CurrencyRepository;
     private final LocationService locationService;
     private final VoucherService voucherService;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
@@ -77,16 +81,16 @@ public class DataSeeder implements CommandLineRunner {
     private List<UserAccount> createUsers(int count) {
         List<UserAccount> users = new ArrayList<>();
         for (int i = 1; i <= count; i++) {
+            String encryptedPasswd = passwordEncoder.encode("password");
             UserAccount user = new UserAccount(
-                    "user" + i + "@example.com",  // loginEmail
-                    "username" + i,              // username
-                    "encryptedPassword" + i,     // passwordEncrypted
-                    "salt" + i,                  // salt
-                    "FirstName" + i,             // firstName
-                    "LastName" + i,              // lastName
-                    new Date()                   // dateOfBirth (set to today for simplicity)
+                    "user" + i + "@example.com",
+                    "username" + i,
+                    encryptedPasswd,
+                    "FirstName" + i,
+                    "LastName" + i,
+                    new Date()
             );
-
+            user.setProfilePicUUID("profile.jpg");
             users.add(user);
         }
         return users;
@@ -95,18 +99,18 @@ public class DataSeeder implements CommandLineRunner {
     private List<CompanyAccount> createCompanies(int count) {
         List<CompanyAccount> companies = new ArrayList<>();
         for (int i = 1; i <= count; i++) {
+            String encryptedPasswd = passwordEncoder.encode("password");
             CompanyAccount company = new CompanyAccount(
                     "company" + i + "@example.com",  // loginEmail
                     "company" + i,                  // username
-                    "encryptedPassword" + i,        // passwordEncrypted
-                    "salt" + i,                     // salt
+                    encryptedPasswd,        // passwordEncrypted
                     "CompanyName" + i,              // name
                     "123 Company Street " + i,      // address
                     "123-456-789" + i,              // phone
                     "contact@company" + i + ".com", // contactEmail
                     "https://company" + i + ".com"  // websiteUrl
             );
-
+            company.setProfilePicUUID("profile.jpg");
             companies.add(company);
         }
         return companies;
@@ -121,7 +125,7 @@ public class DataSeeder implements CommandLineRunner {
             activities.add(ACTIVITY.values()[random.nextInt(ACTIVITY.values().length)]);
 
             Set<LOCATION_VERIFICATION_STRATEGY> verificationStrategies = new HashSet<>();
-            verificationStrategies.add(LOCATION_VERIFICATION_STRATEGY.values()[random.nextInt(LOCATION_VERIFICATION_STRATEGY.values().length)]);
+            verificationStrategies.add(LOCATION_VERIFICATION_STRATEGY.USER_WITHIN_RADIUS);
 
             DTO_Location location = new DTO_Location(
                     null,
@@ -132,7 +136,7 @@ public class DataSeeder implements CommandLineRunner {
                     Math.random() * 180 - 90,
                     Math.random() * 360 - 180,
                     verificationStrategies,
-                    List.of()
+                    List.of("gym.jpg")
             );
             locations.add(location);
         }
@@ -152,7 +156,7 @@ public class DataSeeder implements CommandLineRunner {
             reward.setMinMinutesSpent(30);
             reward.setCurrency(currency.getName());
             reward.setRewardConditions(
-                    List.of(REWARD_CONDITION.values()[random.nextInt(REWARD_CONDITION.values().length)])
+                    List.of(REWARD_CONDITION.MONTHLY_CLAIMS_LIMIT)
             );
             rewards.add(reward);
         }
@@ -168,11 +172,11 @@ public class DataSeeder implements CommandLineRunner {
                     "Voucher for " + currency.getName(),
                     "Special offer with " + currency.getName(),
                     currency.getName(),
-                    random.nextInt(100) + 1,
-                    LocalDate.now().plusMonths(random.nextInt(12)),
+                    15,
+                    LocalDate.now().plusMonths(5),
                     VOUCHER_STATE.IN_OFFER,
                     "ABCD",
-                    List.of()
+                    List.of("shoes.jpg")
             );
             vouchers.add(voucher);
         }

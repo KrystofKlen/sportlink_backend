@@ -22,10 +22,10 @@ public class UserAccount extends Account {
     private String lastName;
     private Date dateOfBirth;
 
-    public UserAccount(String loginEmail, String username, String passwordEncrypted, String salt,
+    public UserAccount(String loginEmail, String username, String passwordEncrypted,
                        String firstName, String lastName, Date dateOfBirth) {
         // Call the all-args constructor of the Account class
-        super(null,loginEmail, username, passwordEncrypted, salt, ROLE.USER, null, ACCOUNT_STATUS.ACTIVE);
+        super(null,loginEmail, username, passwordEncrypted, ROLE.ROLE_USER, null, ACCOUNT_STATUS.ACTIVE);
 
         // Initialize the fields specific to UserAccount
         this.firstName = firstName;

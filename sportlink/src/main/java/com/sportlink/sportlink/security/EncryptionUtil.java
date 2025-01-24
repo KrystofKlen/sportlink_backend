@@ -1,6 +1,7 @@
 package com.sportlink.sportlink.security;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -10,6 +11,7 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import javax.crypto.Cipher;
 
+@Component
 public class EncryptionUtil {
 
     private static final String ALGORITHM = "AES";

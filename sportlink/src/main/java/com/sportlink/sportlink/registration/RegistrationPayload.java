@@ -1,20 +1,18 @@
 package com.sportlink.sportlink.registration;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class DTO_UserRegistration {
+public class RegistrationPayload {
     private String loginEmail;
     private String username;
-    private String salt;
     private String password;
     private String firstName;
     private String lastName;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private Date dateOfBirth;
 }

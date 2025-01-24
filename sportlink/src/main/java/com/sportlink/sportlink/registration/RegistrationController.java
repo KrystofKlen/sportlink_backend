@@ -19,16 +19,12 @@ public class RegistrationController {
 
     @PostMapping("/start-user-registration")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<Void> startUserRegistration(@Valid @ModelAttribute DTO_UserRegistration registrationData) {
+    public ResponseEntity<Void> startUserRegistration(@RequestBody RegistrationPayload registrationData) {
         try {
             String otp = registrationService.startRegistration(registrationData);
-            try {
-                emailSender.sendOtpRegistrationEmail(registrationData.getLoginEmail(), otp);
-            } catch (MessagingException e) {
-                throw new RuntimeException(e);
-            }
+            emailSender.sendOtpRegistrationEmail(registrationData.getLoginEmail(), otp);
             return ResponseEntity.ok().build();
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException | MessagingException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }

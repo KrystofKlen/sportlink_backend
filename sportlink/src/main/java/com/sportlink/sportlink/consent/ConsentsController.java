@@ -1,6 +1,7 @@
 package com.sportlink.sportlink.consent;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -42,4 +43,16 @@ public class ConsentsController {
         List<DTO_Consent> consents = consentService.getAccountsConsents(accountId);
         return ResponseEntity.ok(consents);
     }
+
+    @GetMapping("/{agreementId}")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<String> getAgreement(@PathVariable Long agreementId) {
+        try {
+            String text = consentService.getAgreementText(agreementId);
+            return ResponseEntity.ok(text);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
 }

@@ -1,12 +1,17 @@
 package com.sportlink.sportlink.account.account;
 
+import com.sportlink.sportlink.account.company.CompanyAccount;
+import com.sportlink.sportlink.account.company.DTO_CompanyAccountDetails;
+import com.sportlink.sportlink.account.user.DTO_UserAccountDetails;
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.account.user.UserAccountService;
 import com.sportlink.sportlink.security.SecurityUtils;
+import com.sportlink.sportlink.utils.DTO_Adapter;
 import com.sportlink.sportlink.utils.ImgService;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,68 +27,56 @@ public class AccountController {
 
     private final AccountService accountService;
     private final UserAccountService userAccountService;
+    private final ImgService imgService;
+    private final AuthService authService;
+    private final DTO_Adapter adapter;
 
-    // Create or Update Account
-    @PostMapping
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<Account> saveAccount(@RequestBody Account account) {
-        Account savedAccount = accountService.save(account);
-        return ResponseEntity.ok(savedAccount);
+    @GetMapping("/user/{id}")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<DTO_UserAccountDetails> getUserAccountDetails(){
+        Long id = SecurityUtils.getCurrentAccountId();
+        try {
+            UserAccount userAccount = (UserAccount) accountService.findAccountById(id).orElseThrow();
+            DTO_UserAccountDetails dto_UserAccountDetails = adapter.getDTO_UserAccountDetails(userAccount);
+            return new ResponseEntity<>(dto_UserAccountDetails, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
-    // Get Account by ID
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','COMPANY','USER')")
-    public ResponseEntity<Account> getAccountById(@PathVariable Long id) {
-        Optional<Account> account = accountService.findAccountById(id);
-        return account.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    // Get Account by Email
-    @GetMapping("/email")
-    @PreAuthorize("hasAnyRole('ADMIN','COMPANY','USER')")
-    public ResponseEntity<Account> getAccountByEmail(@RequestParam String email) {
-        Optional<Account> account = accountService.findAccountByEmail(email);
-        return account.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @GetMapping("/company/{id}")
+    @PreAuthorize("hasRole('COMPANY')")
+    public ResponseEntity<DTO_CompanyAccountDetails> getCompanyAccountDetails(){
+        Long id = SecurityUtils.getCurrentAccountId();
+        try {
+            CompanyAccount companyAccount = (CompanyAccount) accountService.findAccountById(id).orElseThrow();
+            DTO_CompanyAccountDetails dto_CompanyAccountDetails = adapter.getDTO_CompanyAccountDetails(companyAccount);
+            return new ResponseEntity<>(dto_CompanyAccountDetails, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     // Delete Account by ID
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','COMPANY','USER')")
-    public ResponseEntity<Void> deleteAccount(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteAccount() {
+        Long id = SecurityUtils.getCurrentAccountId();
         accountService.deleteAccount(id);
         return ResponseEntity.noContent().build();
-    }
-
-    // Set Profile Image UUID
-    @PatchMapping("/{id}/profile-image")
-    @PreAuthorize("hasAnyRole('ADMIN','COMPANY','USER')")
-    public ResponseEntity<Void> setProfileImageUUID(@PathVariable Long id, @RequestParam MultipartFile image) {
-        boolean uploaded = accountService.setProfileImgUUID(id, image);
-        if (uploaded) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.badRequest().build();
-    }
-
-    @DeleteMapping("/{id}/profile-image")
-    @PreAuthorize("hasAnyRole('ADMIN','COMPANY','USER')")
-    public ResponseEntity<Void> deleteProfileImageUUID(@PathVariable Long id) {
-        boolean uploaded = accountService.setProfileImgUUID(id, null);
-        if (uploaded) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.badRequest().build();
     }
 
     @GetMapping("/balance")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Map<String, Integer>> getBalance() {
-        UserAccount user = new UserAccount();
-        Map<String, Integer> balance = userAccountService.getBalance(user);
-        return new ResponseEntity<>(balance, HttpStatus.OK);
+        Long accountIdId = SecurityUtils.getCurrentAccountId();
+        try {
+            UserAccount user = (UserAccount) accountService.findAccountById(accountIdId).orElseThrow();
+            Map<String, Integer> balance = userAccountService.getBalance(user);
+            return new ResponseEntity<>(balance, HttpStatus.OK);
+        }catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @PatchMapping("/status")
@@ -124,9 +117,55 @@ public class AccountController {
     @GetMapping("/images/{imgName}")
     @PreAuthorize("permitAll()")
     public ResponseEntity<Resource> getImg(String imgName) {
-        Optional<Resource> img = ImgService.getImage("DIR", imgName);
-        return img.map(resource -> new ResponseEntity<>(resource, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        Optional<Resource> img = imgService.getImage(imgService.PATH_ACCOUNT, imgName);
+        if(img.isPresent()){
+            return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(img.get());
+        }
+        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
+    // Change Profile Image
+    @PatchMapping("/{id}/profile-image")
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY','USER')")
+    public ResponseEntity<Void> setProfileImage(@PathVariable Long id, @RequestParam MultipartFile image) {
+        boolean uploaded = accountService.setProfileImgUUID(id, image);
+        if (uploaded) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+    @DeleteMapping("/{id}/profile-image")
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY','USER')")
+    public ResponseEntity<Void> deleteProfileImageUUID(@PathVariable Long id) {
+        boolean uploaded = accountService.setProfileImgUUID(id, null);
+        if (uploaded) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+    @PostMapping("/login")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<DTO_LoginResponse> login(@ModelAttribute DTO_LoginRequest request) {
+        try {
+            DTO_LoginResponse tokens = authService.login(request.principal, request.password);
+            return ResponseEntity.ok(tokens);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @PostMapping("/refresh-token")
+    @PreAuthorize("hasAnyRole('USER','COMPANY')")
+    public ResponseEntity<String> refreshToken(@RequestParam String refreshToken){
+        try {
+            // Check if the refresh token is valid and not expired
+            Long accountId = SecurityUtils.getCurrentAccountId();
+            String newAccessToken = authService.getNewAccessToken(accountId, refreshToken);
+            return ResponseEntity.ok(newAccessToken);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+    }
 }

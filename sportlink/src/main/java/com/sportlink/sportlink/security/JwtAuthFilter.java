@@ -35,8 +35,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String username;
 
         if(authHeader == null || !authHeader.startsWith("Bearer ")){
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // Set HTTP status to 401
-            response.getWriter().write("Unauthorized: Missing or invalid Authorization header");
+            // leave authentication to methods guarded with @PreAuthorize
+            filterChain.doFilter(request, response);
             return; // Stop further processing
         }
 

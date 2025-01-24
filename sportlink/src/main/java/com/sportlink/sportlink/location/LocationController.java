@@ -9,8 +9,10 @@ import com.sportlink.sportlink.utils.ImgService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -21,12 +23,13 @@ import java.util.Optional;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/api/v1/locations")
 @AllArgsConstructor
+@RequestMapping("/api/v1/locations")
 public class LocationController {
 
     private final LocationService locationService;
     private final DTO_Adapter adapter;
+    private final ImgService imgService;
 
     /**
      * Create a new location
@@ -62,7 +65,7 @@ public class LocationController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','COMPANY')")
     public ResponseEntity<Void> deleteLocation(@PathVariable Long id) {
-        Long accountId = 1L;
+        Long accountId = SecurityUtils.getCurrentAccountId();
         boolean isAllowed = locationService.allowModification(accountId, id);
         if (!isAllowed) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -74,7 +77,7 @@ public class LocationController {
     @PostMapping("/{locationId}/reward")
     @PreAuthorize("hasAnyRole('ADMIN','COMPANY')")
     public ResponseEntity<DTO_Location> addRewardLocation(@Valid @RequestBody DTO_Reward reward, @PathVariable long locationId) {
-        Long accountId = 1L;
+        Long accountId = SecurityUtils.getCurrentAccountId();
         boolean isAllowed = locationService.allowModification(accountId, locationId);
         if (!isAllowed) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -97,7 +100,7 @@ public class LocationController {
     @DeleteMapping("/{locationId}/reward/{rewardId}")
     @PreAuthorize("hasAnyRole('ADMIN','COMPANY')")
     public ResponseEntity<Void> deleteRewardLocation(@PathVariable Long locationId, @PathVariable Long rewardId) {
-        Long accountId = 1L;
+        Long accountId = SecurityUtils.getCurrentAccountId();
         boolean isAllowed = locationService.allowModification(accountId, rewardId);
         if (!isAllowed) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -170,9 +173,11 @@ public class LocationController {
     @GetMapping("/images/{imgName}")
     @PreAuthorize("permitAll()")
     public ResponseEntity<Resource> getImage(@PathVariable String imgName) {
-        Optional<Resource> image = ImgService.getImage("DIR", imgName);
-        return image.map(resource -> new ResponseEntity<>(resource, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        Optional<Resource> image = imgService.getImage(imgService.PATH_LOCATION, imgName);
+        if(image.isPresent()) {
+            return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(image.get());
+        }
+        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
     // Endpoint to delete an image

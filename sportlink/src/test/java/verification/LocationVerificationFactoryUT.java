@@ -6,6 +6,8 @@ import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.verification.I_VerificationStrategy;
 import com.sportlink.sportlink.verification.location.DTO_LocationVerificationRequest;
 import com.sportlink.sportlink.verification.location.LocationVerificationFactory;
+import com.sportlink.sportlink.visit.I_VisitRepository;
+import com.sportlink.sportlink.visit.Visit;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +20,8 @@ import java.util.Set;
 
 import static com.sportlink.sportlink.verification.location.LOCATION_VERIFICATION_STRATEGY.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +33,9 @@ public class LocationVerificationFactoryUT {
     @Mock
     private I_LocationRepository locationRepository;
 
+    @Mock
+    private I_VisitRepository visitRepository;
+
     private Location location;
 
     private LocationVerificationFactory locationVerificationFactory;
@@ -38,7 +45,7 @@ public class LocationVerificationFactoryUT {
     void setUp() {
         location = new Location();
         MockitoAnnotations.openMocks(this);
-        locationVerificationFactory = new LocationVerificationFactory(redisService, locationRepository);
+        locationVerificationFactory = new LocationVerificationFactory(redisService, locationRepository, visitRepository);
 
         // Initialize DTO_LocationVerificationRequest
         dtoRequest = new DTO_LocationVerificationRequest();
@@ -143,4 +150,32 @@ public class LocationVerificationFactoryUT {
             assertEquals(EntityNotFoundException.class, ex.getClass());
         }
     }
+
+    @Test
+    void testOneVisitPerDayLimit() {
+        when(visitRepository.findVisitsByVisitorToday(anyLong())).thenReturn(List.of());
+        List<I_VerificationStrategy> strategies =
+                locationVerificationFactory.getVerificationStrategyList(dtoRequest, Set.of(ONE_VISIT_PER_DAY));
+
+        assertTrue(strategies.size() == 1);
+        List<Boolean> actualResults = verifyStrategies(strategies);
+        List<Boolean> expectedResults = List.of(true);
+        assertEquals(expectedResults, actualResults, "ONE_VISIT_PER_DAY strategy verification failed.");
+    }
+
+    @Test
+    void testOneVisitPerDayLimit_limitExceeded() {
+        Visit visit = new Visit();
+        location.setId(1L);
+        visit.setLocation(location);
+        when(visitRepository.findVisitsByVisitorToday(anyLong())).thenReturn(List.of(visit));
+        List<I_VerificationStrategy> strategies =
+                locationVerificationFactory.getVerificationStrategyList(dtoRequest, Set.of(ONE_VISIT_PER_DAY));
+
+        assertTrue(strategies.size() == 1);
+        List<Boolean> actualResults = verifyStrategies(strategies);
+        List<Boolean> expectedResults = List.of(false);
+        assertEquals(expectedResults, actualResults, "ONE_VISIT_PER_DAY strategy verification failed.");
+    }
+
 }

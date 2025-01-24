@@ -1,16 +1,29 @@
 package com.sportlink.sportlink.account.account;
 
+import com.sportlink.sportlink.account.ROLE;
 import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.security.EncryptionUtil;
+import com.sportlink.sportlink.security.JwtService;
+import com.sportlink.sportlink.security.SecurityUtils;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import com.sportlink.sportlink.utils.ImgService;
+import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -25,6 +38,7 @@ public class AccountService {
     private final EncryptionUtil.SaltGenerator saltGenerator;
     private final PasswordEncoder passwordEncoder;
     private final DTO_Adapter adapter;
+    private final ImgService imgService;
 
     // Create or Update UserAccount
     @Transactional
@@ -64,10 +78,8 @@ public class AccountService {
             return false;
         }
 
-        String salt = saltGenerator.generateSalt();
-        String saltedPassword = passwordEncoder.encode(newPassword + salt);
-        account.get().setSalt(salt);
-        account.get().setPassword(saltedPassword);
+        String encoded = passwordEncoder.encode(newPassword);
+        account.get().setPassword(encoded);
         log.info("Password changed: accountId = " + account.get().getId());
         return true;
     }
@@ -86,7 +98,7 @@ public class AccountService {
         if (image == null) {
             filename = "default.jpg";
         }
-        boolean saved = ImgService.saveImage("DIR", filename, image);
+        boolean saved = imgService.saveImage(imgService.PATH_ACCOUNT, filename, image);
         if (!saved) {
             return false;
         }
@@ -95,5 +107,4 @@ public class AccountService {
         accountRepository.save(account);
         return true;
     }
-
 }

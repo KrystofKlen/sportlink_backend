@@ -17,9 +17,9 @@ public interface I_VoucherRepository extends JpaRepository<Voucher, Long> {
     @Query("SELECT v FROM Voucher v WHERE v.state =:state ")
     Page<Voucher> findByState(Pageable pageable, @Param("state") VOUCHER_STATE state);
 
-    @Query("SELECT v FROM Voucher v WHERE v.buyer.id =: userId")
+    @Query("SELECT v FROM Voucher v WHERE v.buyer.id =:userId")
     List<Voucher> getBuyersVouchers(@Param("userId") Long userId);
 
-    @Query("SELECT v FROM Voucher v WHERE v.issuer.id =: issuerId")
+    @Query("SELECT v FROM Voucher v WHERE v.issuer.id =:issuerId")
     List<Voucher> getIssuersVouchers(@Param("issuerId") Long issuerId);
 }

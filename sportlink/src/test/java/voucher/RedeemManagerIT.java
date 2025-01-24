@@ -119,4 +119,13 @@ class RedeemManagerIT {
         assertTrue(transferRepository.findAll().isEmpty());
         assertEquals(200, testUserAccount.getBalance().get(testVoucher.getCurrency()));
     }
+
+    @Test
+    void redeemVoucherOnREDEEMED_Voucher() {
+        testVoucher.setState(VOUCHER_STATE.REDEEMED);
+        testVoucher = voucherRepository.save(testVoucher);
+        RESULT_CODE result = redeemTransactionManager.redeemVoucher(testVoucher.getId(), testUserAccount);
+        assertEquals(RESULT_CODE.VOUCHER_NOT_AVAILABLE, result);
+    }
+
 }

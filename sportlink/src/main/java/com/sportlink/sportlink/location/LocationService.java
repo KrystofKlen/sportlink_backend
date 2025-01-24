@@ -12,6 +12,7 @@ import com.sportlink.sportlink.verification.I_VerificationStrategy;
 import com.sportlink.sportlink.verification.location.DTO_LocationVerificationRequest;
 import com.sportlink.sportlink.verification.location.LocationVerificationFactory;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class LocationService {
 
     private final I_LocationRepository locationRepository;
@@ -31,15 +33,7 @@ public class LocationService {
     private final LocationVerificationFactory verificationFactory;
     public static final double MAX_DEVIATION = 0.5;
     private final AccountService accountService;
-
-    @Autowired
-    public LocationService(I_LocationRepository locationRepository, I_CurrencyRepository currencyRepository, DTO_Adapter adapter, LocationVerificationFactory verificationFactory, AccountService accountService) {
-        this.locationRepository = locationRepository;
-        this.currencyRepository = currencyRepository;
-        this.adapter = adapter;
-        this.verificationFactory = verificationFactory;
-        this.accountService = accountService;
-    }
+    private final ImgService imgService;
 
     @Transactional
     public DTO_Location saveLocation(@Valid DTO_Location dtoLocation, Long issuerId) {
@@ -213,7 +207,7 @@ public class LocationService {
 
     public boolean uploadImg(long locationId, MultipartFile image) {
         String filename = UUID.randomUUID().toString() + "jpg";
-        boolean saved = ImgService.saveImage("DIR", filename, image);
+        boolean saved = imgService.saveImage(imgService.PATH_LOCATION, filename, image);
         if (!saved) {
             return false;
         }
@@ -224,8 +218,7 @@ public class LocationService {
     }
 
     public boolean deleteImg(long locationId, String filename) {
-        String path = "DIR/" + filename;
-        boolean deleted = ImgService.deleteImage("DIR", filename);
+        boolean deleted = imgService.deleteImage(imgService.PATH_LOCATION, filename);
         if (!deleted) {
             return false;
         }

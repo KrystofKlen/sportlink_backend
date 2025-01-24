@@ -1,9 +1,11 @@
 package registration;
 
-import com.sportlink.sportlink.account.user.DTO_UserAccount;
+import com.sportlink.sportlink.account.account.Account;
+import com.sportlink.sportlink.account.account.AccountService;
+import com.sportlink.sportlink.account.account.DTO_Account;
 import com.sportlink.sportlink.account.user.UserAccountService;
 import com.sportlink.sportlink.redis.RedisService;
-import com.sportlink.sportlink.registration.DTO_UserRegistration;
+import com.sportlink.sportlink.registration.RegistrationPayload;
 import com.sportlink.sportlink.registration.RegistrationService;
 import com.sportlink.sportlink.security.EncryptionUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +26,9 @@ public class RegistrationServiceUT {
     private UserAccountService userAccountService;
 
     @Mock
+    private AccountService accountService;
+
+    @Mock
     private EncryptionUtil.SaltGenerator saltGenerator;
 
     @Mock
@@ -42,15 +47,15 @@ public class RegistrationServiceUT {
 
     @Test
     void testRegisterWhenUsernameExists() {
-        DTO_UserRegistration registrationData = new DTO_UserRegistration();
+        RegistrationPayload registrationData = new RegistrationPayload();
         registrationData.setLoginEmail("1@example.com");
         registrationData.setUsername("1");
 
-        DTO_UserAccount anotherUser = new DTO_UserAccount();
+        DTO_Account anotherUser = new DTO_Account();
         anotherUser.setUsername("1");
 
-        when(userAccountService.findByEmail("1@example.com")).thenReturn(Optional.empty());
-        when(userAccountService.findByUsername("1")).thenReturn(Optional.of(anotherUser));
+        when(accountService.findAccountByEmail("1@example.com")).thenReturn(Optional.empty());
+        when(accountService.findDTOAccountByUsername("1")).thenReturn(Optional.of(anotherUser));
 
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> registrationService.startRegistration(registrationData));
         assertEquals("User account already exists", exception.getMessage());
@@ -58,14 +63,14 @@ public class RegistrationServiceUT {
 
     @Test
     void testRegisterWhenEmailExists() {
-        DTO_UserRegistration registrationData = new DTO_UserRegistration();
+        RegistrationPayload registrationData = new RegistrationPayload();
         registrationData.setLoginEmail("1@example.com");
         registrationData.setUsername("1");
 
-        DTO_UserAccount anotherUser = new DTO_UserAccount();
+        Account anotherUser = new Account();
 
-        when(userAccountService.findByEmail("1@example.com")).thenReturn(Optional.of(anotherUser));
-        when(userAccountService.findByUsername("1")).thenReturn(Optional.empty());
+        when(accountService.findAccountByEmail("1@example.com")).thenReturn(Optional.of(anotherUser));
+        when(accountService.findDTOAccountByUsername("1")).thenReturn(Optional.empty());
 
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> registrationService.startRegistration(registrationData));
         assertEquals("User account already exists", exception.getMessage());

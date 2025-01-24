@@ -78,10 +78,8 @@ public class AccountServiceIT {
         Optional<Account> updatedAccount = accountService.findAccountByEmail(email);
         assertThat(updatedAccount).isPresent();
 
-        String saltedPassword = updatedAccount.get().getPassword();
-        String salt = updatedAccount.get().getSalt();
 
-        assertTrue(passwordEncoder.matches(newPassword + salt, saltedPassword));
+        assertTrue(passwordEncoder.matches(newPassword, updatedAccount.get().getPassword()));
     }
 
     @Test

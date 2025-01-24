@@ -4,15 +4,13 @@ import com.sportlink.sportlink.account.ROLE;
 import com.sportlink.sportlink.account.account.Account;
 import com.sportlink.sportlink.account.account.I_AccountRepository;
 import com.sportlink.sportlink.account.company.CompanyAccount;
-import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.currency.Currency;
 import com.sportlink.sportlink.currency.I_CurrencyRepository;
 import com.sportlink.sportlink.utils.ImgService;
 import com.sportlink.sportlink.security.EncryptionUtil;
-import com.sportlink.sportlink.transfer.I_TransferRepository;
-import com.sportlink.sportlink.transfer.Transfer;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,7 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,21 +27,15 @@ import static com.sportlink.sportlink.voucher.VOUCHER_STATE.IN_OFFER;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class VoucherService {
 
     private final I_CurrencyRepository currencyRepository;
     private final I_AccountRepository accountRepository;
     private final I_VoucherRepository voucherRepository;
     private final DTO_Adapter adapter;
-    private final I_TransferRepository transferRepository;
+    private final ImgService imgService;
 
-    public VoucherService(I_CurrencyRepository currencyRepository, I_AccountRepository accountRepository, I_VoucherRepository voucherRepository, DTO_Adapter adapter, I_TransferRepository transferRepository) {
-        this.currencyRepository = currencyRepository;
-        this.accountRepository = accountRepository;
-        this.voucherRepository = voucherRepository;
-        this.adapter = adapter;
-        this.transferRepository = transferRepository;
-    }
 
     @Transactional
     public DTO_Voucher addVoucher(Long issuerId, DTO_Voucher dto, List<MultipartFile> images) throws Exception {
@@ -114,9 +105,9 @@ public class VoucherService {
         }
 
         Account acc = accountRepository.findById(accountRequestingId).orElseThrow();
-        if(acc.getRole().equals(ROLE.ADMIN)){
+        if(acc.getRole().equals(ROLE.ROLE_ADMIN)){
             voucherRepository.deleteById(voucherId);
-        } else if (acc.getRole().equals(ROLE.COMPANY)) {
+        } else if (acc.getRole().equals(ROLE.ROLE_COMPANY)) {
 
             Long issuerId = existingVoucherOpt.get().getIssuer().getId();
             if(accountRequestingId != issuerId){
@@ -135,7 +126,7 @@ public class VoucherService {
         // save images
         for (MultipartFile multipartFile : images) {
             String filename = UUID.randomUUID().toString() + "jpg";
-            boolean saved = ImgService.saveImage("DIR", filename, multipartFile);
+            boolean saved = imgService.saveImage(imgService.PATH_VOUCHER, filename, multipartFile);
             if (!saved) {
                 throw new Exception();
             }

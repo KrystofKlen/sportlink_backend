@@ -23,8 +23,6 @@ public class DTO_Account implements UserDetails {
 
     private String password;
 
-    private String salt;
-
     private ROLE role;
 
     private String profilePicUUID;

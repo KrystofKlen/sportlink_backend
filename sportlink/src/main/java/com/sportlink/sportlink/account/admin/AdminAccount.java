@@ -8,6 +8,6 @@ import jakarta.persistence.Entity;
 public class AdminAccount extends Account {
     public AdminAccount() {
         super();
-        setRole(ROLE.ADMIN);
+        setRole(ROLE.ROLE_ADMIN);
     }
 }

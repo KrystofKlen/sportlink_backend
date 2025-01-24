@@ -20,11 +20,11 @@ public class CompanyAccount extends Account {
     private String contactEmail;
     private String websiteUrl;
 
-    public CompanyAccount(String loginEmail, String username, String passwordEncrypted, String salt,
+    public CompanyAccount(String loginEmail, String username, String passwordEncrypted,
                           String name, String address, String phone, String contactEmail,
                           String websiteUrl) {
         // Call the all-args constructor of the Account class
-        super(null, loginEmail, username, passwordEncrypted, salt, ROLE.COMPANY,"", ACCOUNT_STATUS.NOT_APPROVED);
+        super(null, loginEmail, username, passwordEncrypted, ROLE.ROLE_COMPANY,"", ACCOUNT_STATUS.NOT_APPROVED);
 
         // Initialize the fields specific to UserAccount
         this.name = name;

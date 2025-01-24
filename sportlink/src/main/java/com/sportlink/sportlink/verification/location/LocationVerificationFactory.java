@@ -6,9 +6,14 @@ import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.verification.I_VerificationStrategy;
 import com.sportlink.sportlink.verification.location.contexts.CodeScanContext;
 import com.sportlink.sportlink.verification.location.contexts.GeoContext;
+import com.sportlink.sportlink.verification.location.contexts.VisitsLimitContext;
 import com.sportlink.sportlink.verification.location.stretegies.ScanningCode;
 import com.sportlink.sportlink.verification.location.stretegies.UserRadius;
+import com.sportlink.sportlink.verification.location.stretegies.VisitsLimit;
+import com.sportlink.sportlink.visit.I_VisitRepository;
+import com.sportlink.sportlink.visit.Visit;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,15 +21,12 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@AllArgsConstructor
 public class LocationVerificationFactory {
 
     private final RedisService redisService;
     private final I_LocationRepository locationRepository;
-
-    public LocationVerificationFactory(RedisService redisService, I_LocationRepository locationRepository) {
-        this.redisService = redisService;
-        this.locationRepository = locationRepository;
-    }
+    private final I_VisitRepository visitRepository;
 
     public List<I_VerificationStrategy> getVerificationStrategyList(DTO_LocationVerificationRequest dto_location_verification_request, Set<LOCATION_VERIFICATION_STRATEGY> strategies) {
 
@@ -61,6 +63,15 @@ public class LocationVerificationFactory {
                     codeScanContext.setEntityIdScanned( dto_location_verification_request.getUserId() );
 
                     verificationStrategies.add(new ScanningCode(codeScanContext));
+                }
+                case ONE_VISIT_PER_DAY -> {
+                    List<Visit> visits = visitRepository.findVisitsByVisitorToday(dto_location_verification_request.getUserId());
+                    VisitsLimitContext context = new VisitsLimitContext();
+                    context.setLocationId(dto_location_verification_request.getLocationId());
+                    context.setVisitsToday(visits);
+                    context.setLimitPerDay(1);
+
+                    verificationStrategies.add(new VisitsLimit(context));
                 }
             }
         });

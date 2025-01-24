@@ -3,6 +3,7 @@ package com.sportlink.sportlink.visit;
 import com.sportlink.sportlink.account.account.AccountService;
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.location.DTO_Location;
+import com.sportlink.sportlink.location.Location;
 import com.sportlink.sportlink.location.LocationService;
 import com.sportlink.sportlink.security.SecurityUtils;
 import com.sportlink.sportlink.utils.RESULT_CODE;
@@ -18,7 +19,7 @@ import java.util.Optional;
 import static com.sportlink.sportlink.utils.RESULT_CODE.*;
 
 @RestController
-@RequestMapping("/api/visits")
+@RequestMapping("/api/v1/visits")
 @AllArgsConstructor
 public class VisitController {
 
@@ -52,7 +53,7 @@ public class VisitController {
 
     @PostMapping("/open")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<RESULT_CODE> openVisit(@RequestBody DTO_VisitRequest request) {
+    public ResponseEntity<String> openVisit(@RequestBody DTO_VisitRequest request) {
         Long accountId = SecurityUtils.getCurrentAccountId();
         UserAccount acc = null;
         try {
@@ -79,13 +80,13 @@ public class VisitController {
             RESULT_CODE result = visitTransactionManager.openVisit(acc, verificationRequest);
             switch (result) {
                 case VISIT_OPENED -> {
-                    return ResponseEntity.ok().body(VISIT_OPENED);
+                    return ResponseEntity.ok().body(VISIT_OPENED.toString());
                 }
                 case LOCATION_NOT_VERIFIED -> {
-                    return ResponseEntity.badRequest().body(LOCATION_NOT_VERIFIED);
+                    return ResponseEntity.badRequest().body(LOCATION_NOT_VERIFIED.toString());
                 }
                 case LAST_VISIT_MUST_BE_CLOSED -> {
-                    return ResponseEntity.badRequest().body(LAST_VISIT_MUST_BE_CLOSED);
+                    return ResponseEntity.badRequest().body(LAST_VISIT_MUST_BE_CLOSED.toString());
                 }
                 default -> {
                     return ResponseEntity.internalServerError().body(null);
@@ -98,20 +99,30 @@ public class VisitController {
 
     @PostMapping("/close")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<RESULT_CODE> closeVisit(@RequestBody DTO_LocationVerificationRequest request) {
+    public ResponseEntity<String> closeVisit(@RequestBody DTO_VisitRequest request) {
         try {
             Long accountId = SecurityUtils.getCurrentAccountId();
             UserAccount acc = (UserAccount) accountService.findAccountById(accountId).orElseThrow();
-            RESULT_CODE result = visitTransactionManager.closeVisit(acc, request);
+            DTO_Location location = locationService.findLocationById(request.getLocationId()).orElseThrow();
+            DTO_LocationVerificationRequest verificationRequest = new DTO_LocationVerificationRequest(
+                    accountId,
+                    request.getLocationId(),
+                    request.getUserLatitude(),
+                    request.getUserLongitude(),
+                    location.getLatitude(),
+                    location.getLongitude(),
+                    request.code
+            );
+            RESULT_CODE result = visitTransactionManager.closeVisit(acc, verificationRequest);
             switch (result) {
                 case VISIT_CLOSED -> {
-                    return ResponseEntity.ok().body(VISIT_CLOSED);
+                    return ResponseEntity.ok().body(VISIT_CLOSED.toString());
                 }
                 case LOCATION_NOT_VERIFIED -> {
-                    return ResponseEntity.badRequest().body(LOCATION_NOT_VERIFIED);
+                    return ResponseEntity.badRequest().body(LOCATION_NOT_VERIFIED.toString());
                 }
                 case LAST_VISIT_MUST_BE_OPEN -> {
-                    return ResponseEntity.badRequest().body(LAST_VISIT_MUST_BE_OPEN);
+                    return ResponseEntity.badRequest().body(LAST_VISIT_MUST_BE_OPEN.toString());
                 }
                 default -> {
                     return ResponseEntity.internalServerError().body(null);

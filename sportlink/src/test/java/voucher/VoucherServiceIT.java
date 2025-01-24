@@ -4,9 +4,13 @@ import com.sportlink.sportlink.SportlinkApplication;
 import com.sportlink.sportlink.account.ROLE;
 import com.sportlink.sportlink.account.account.I_AccountRepository;
 import com.sportlink.sportlink.account.company.CompanyAccount;
+import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.currency.Currency;
 import com.sportlink.sportlink.currency.I_CurrencyRepository;
+import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.voucher.DTO_Voucher;
+import com.sportlink.sportlink.voucher.I_VoucherRepository;
+import com.sportlink.sportlink.voucher.Voucher;
 import com.sportlink.sportlink.voucher.VoucherService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
@@ -31,15 +36,20 @@ public class VoucherServiceIT {
     @Autowired
     private I_CurrencyRepository currencyRepository;
 
+    @Autowired
+    private EncryptionUtil encryptionUtil;;
+
     private CompanyAccount issuerAccount;
     private Currency currency;
+    @Autowired
+    private I_VoucherRepository i_VoucherRepository;
 
     @BeforeEach
     void setUp() {
         // Setup test data
         issuerAccount = new CompanyAccount();
         issuerAccount.setName("issuer");
-        issuerAccount.setRole(ROLE.COMPANY);
+        issuerAccount.setRole(ROLE.ROLE_COMPANY);
         issuerAccount = accountRepository.save(issuerAccount);
 
         currency = new Currency();
@@ -127,6 +137,44 @@ public class VoucherServiceIT {
         // Assertions
         assertThat(vouchersInOffer).isNotEmpty();
         assertThat(vouchersInOffer.get(0).getTitle()).isEqualTo("Test Voucher");
+    }
+
+    @Test
+    void testRevealVoucherCode(){
+        UserAccount buyer = new UserAccount();
+        buyer.setUsername("buyer");
+        buyer.setPassword("password");
+        buyer = accountRepository.save(buyer);
+
+        Voucher voucher = new Voucher();
+        voucher.setTitle("Test Voucher");
+        voucher.setDescription("Integration Test");
+        voucher.setPrice(100);
+        try {
+            String codeEncrypted = EncryptionUtil.encrypt("ABCD");
+            voucher.setCode(codeEncrypted);
+        } catch (Exception e) {
+            fail();
+        }
+        voucher.setIssuer(issuerAccount);
+        voucher = i_VoucherRepository.save(voucher);
+        try {
+            voucherService.revealCode( voucher.getId(), buyer.getId());
+            fail();
+        }catch (Exception ignored){}
+
+        voucher.setBuyer(buyer);
+        voucher = i_VoucherRepository.save(voucher);
+        try {
+            voucherService.revealCode( voucher.getId(), buyer.getId() + 1);
+            fail();
+        }catch (Exception ignored){}
+        try {
+            String code = voucherService.revealCode( voucher.getId(), buyer.getId());
+            assertEquals("ABCD", code);
+        }catch (Exception e){
+            fail();
+        }
     }
 
 }

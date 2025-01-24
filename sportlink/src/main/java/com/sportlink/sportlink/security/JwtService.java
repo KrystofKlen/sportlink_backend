@@ -9,6 +9,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -25,9 +26,10 @@ import java.util.stream.Collectors;
 @Service
 public class JwtService {
 
-    private String secretKey = EncryptionUtil.generateRandomSequence(32);
-    public static final Long STANDARD_EXPIRATION_TIME = TimeUnit.DAYS.toMillis(1L); // 1 day
-    public static final Long ADMIN_EXPIRATION_TIME = TimeUnit.MINUTES.toMillis(10); // 10 min
+    @Value("${jwt.key}")
+    private String secretKey;
+    public static final Long ACCESS_TOKEN_EXP = TimeUnit.HOURS.toMillis(1L);
+    public static final Long REFRESH_TOKEN_EXP = TimeUnit.DAYS.toMillis(20);
 
     public Long getUserIdFromToken(HttpServletRequest request) throws NumberFormatException, ExpiredJwtException {
         String jwt = getJwtFromRequest(request);
@@ -51,7 +53,7 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(DTO_Account account){
+    public String generateToken(DTO_Account account, Long exp){
         Map<String, Object> claims = new HashMap<>();
         List<String> roles = account
                 .getAuthorities()
@@ -60,12 +62,7 @@ public class JwtService {
                 .collect(Collectors.toList());
         claims.put("roles", roles);
         claims.put("accountId", account.getId());
-
-        if(roles.contains(ROLE.ADMIN.toString())){
-            return generateToken(claims, account, ADMIN_EXPIRATION_TIME);
-        }else{
-            return generateToken(claims, account, STANDARD_EXPIRATION_TIME);
-        }
+        return generateToken(claims, account, exp);
     }
 
     public String generateToken( Map<String, Object> extraClaims,  DTO_Account account, Long expirationTime) {
@@ -73,7 +70,7 @@ public class JwtService {
                 .builder()
                 .setId(account.getId().toString())
                 .setClaims(extraClaims)
-                .setSubject(account.getLoginEmail())
+                .setSubject(account.getUsername())
                 .setIssuedAt(new Date((System.currentTimeMillis())))
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -85,7 +82,7 @@ public class JwtService {
             final String username = extractUsername(jwt);
             boolean usernameOK = username.equals(userDetails.getUsername());
             return usernameOK && !isTokenExpired(jwt);
-        }catch (ExpiredJwtException e){
+        }catch (Exception e){
             return false;
         }
     }

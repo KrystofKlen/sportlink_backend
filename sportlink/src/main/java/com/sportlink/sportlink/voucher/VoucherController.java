@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Optional;
 
-import static com.sportlink.sportlink.utils.RESULT_CODE.INSUFFICIENT_FUNDS;
-import static com.sportlink.sportlink.utils.RESULT_CODE.REDEEMED;
+import static com.sportlink.sportlink.utils.RESULT_CODE.*;
 
 @RestController
 @RequestMapping("/api/v1/vouchers")
@@ -28,6 +28,7 @@ public class VoucherController {
     private final VoucherService voucherService;
     private final RedeemTransactionManager redeemTransactionManager;
     private final AccountService accountService;
+    private final ImgService imgService;
 
 
     @PostMapping
@@ -49,7 +50,7 @@ public class VoucherController {
         return voucher.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/reveal/")
+    @GetMapping("/reveal/{voucherId}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<String> revealVoucherCode(@PathVariable Long voucherId) {
         try {
@@ -57,7 +58,7 @@ public class VoucherController {
             String result = voucherService.revealCode(voucherId, userId);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
     }
 
@@ -100,17 +101,20 @@ public class VoucherController {
 
     @PostMapping("/redeem/{voucherId}")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<RESULT_CODE> redeemVoucher(@PathVariable Long voucherId) {
+    public ResponseEntity<String> redeemVoucher(@PathVariable Long voucherId) {
         Long userId = SecurityUtils.getCurrentAccountId();
         UserAccount user = (UserAccount) accountService.findAccountById(userId).orElseThrow();
         try {
             RESULT_CODE result = redeemTransactionManager.redeemVoucher(voucherId, user);
             switch (result) {
                 case INSUFFICIENT_FUNDS -> {
-                    return new ResponseEntity<>(INSUFFICIENT_FUNDS, HttpStatus.BAD_REQUEST);
+                    return new ResponseEntity<>(INSUFFICIENT_FUNDS.toString(), HttpStatus.BAD_REQUEST);
                 }
                 case REDEEMED -> {
-                    return new ResponseEntity<>(REDEEMED, HttpStatus.OK);
+                    return new ResponseEntity<>(REDEEMED.toString(), HttpStatus.OK);
+                }
+                case VOUCHER_NOT_AVAILABLE -> {
+                    return new ResponseEntity<>(VOUCHER_NOT_AVAILABLE.toString(), HttpStatus.BAD_REQUEST);
                 }
                 default -> {
                     return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -124,8 +128,10 @@ public class VoucherController {
     @GetMapping("/images/{imgName}")
     @PreAuthorize("permitAll()")
     public ResponseEntity<Resource> getImage(@PathVariable String imgName) {
-        Optional<Resource> image = ImgService.getImage("DIR", imgName);
-        return image.map(resource -> new ResponseEntity<>(resource, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        Optional<Resource> image = imgService.getImage(imgService.PATH_VOUCHER, imgName);
+        if (image.isPresent()) {
+            return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(image.get());
+        }
+        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 }

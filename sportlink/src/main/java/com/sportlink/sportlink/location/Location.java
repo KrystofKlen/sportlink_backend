@@ -53,7 +53,8 @@ public class Location {
                     Set<ACTIVITY> activities,
                     double longitude,
                     double latitude,
-                    Set<LOCATION_VERIFICATION_STRATEGY> verificationStrategies) {
+                    Set<LOCATION_VERIFICATION_STRATEGY> verificationStrategies,
+                    List<String> imagesUUID) {
         this.id = id;
         this.name = name;
         this.address = address;
@@ -62,6 +63,7 @@ public class Location {
         this.longitude = longitude;
         this.latitude = latitude;
         this.verificationStrategies = verificationStrategies;
+        this.imagesUUID = imagesUUID;
     }
 
     public Location() {

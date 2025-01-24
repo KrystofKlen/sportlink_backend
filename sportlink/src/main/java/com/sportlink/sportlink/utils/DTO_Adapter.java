@@ -4,7 +4,9 @@ import com.sportlink.sportlink.account.account.Account;
 import com.sportlink.sportlink.account.account.DTO_Account;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.account.company.DTO_CompanyAccount;
+import com.sportlink.sportlink.account.company.DTO_CompanyAccountDetails;
 import com.sportlink.sportlink.account.user.DTO_UserAccount;
+import com.sportlink.sportlink.account.user.DTO_UserAccountDetails;
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.comment.DTO_Review;
 import com.sportlink.sportlink.comment.Review;
@@ -83,7 +85,8 @@ public class DTO_Adapter {
                 dtoLocation.getActivities(),
                 dtoLocation.getLongitude(),
                 dtoLocation.getLatitude(),
-                dtoLocation.getVerificationStrategies()
+                dtoLocation.getVerificationStrategies(),
+                dtoLocation.getImagesUUIDs()
         );
     }
 
@@ -151,7 +154,6 @@ public class DTO_Adapter {
                 account.getLoginEmail(),
                 account.getUsername(),
                 account.getPassword(),
-                account.getSalt(),
                 account.getRole(),
                 account.getProfilePicUUID(),
                 account.getStatus()
@@ -167,4 +169,33 @@ public class DTO_Adapter {
         );
     }
 
+    public DTO_UserAccountDetails getDTO_UserAccountDetails(UserAccount userAccount) {
+        return new DTO_UserAccountDetails(
+                userAccount.getId(),
+                userAccount.getLoginEmail(),
+                userAccount.getUsername(),
+                userAccount.getRole(),
+                userAccount.getProfilePicUUID(),
+                userAccount.getStatus(),
+                userAccount.getFirstName(),
+                userAccount.getLastName(),
+                userAccount.getDateOfBirth()
+        );
+    }
+
+    public DTO_CompanyAccountDetails getDTO_CompanyAccountDetails(CompanyAccount companyAccount) {
+        return new DTO_CompanyAccountDetails(
+                companyAccount.getId(),
+                companyAccount.getLoginEmail(),
+                companyAccount.getUsername(),
+                companyAccount.getRole(),
+                companyAccount.getProfilePicUUID(),
+                companyAccount.getStatus(),
+                companyAccount.getName(),
+                companyAccount.getAddress(),
+                companyAccount.getPhone(),
+                companyAccount.getContactEmail(),
+                companyAccount.getWebsiteUrl()
+        );
+    }
 }

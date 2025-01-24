@@ -19,8 +19,8 @@ public class Visit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long visitId;
 
-    @OneToOne
-    @JoinColumn(name = "location_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(nullable = false)
     private Location location;
 
     private LocalDateTime timestampStart;

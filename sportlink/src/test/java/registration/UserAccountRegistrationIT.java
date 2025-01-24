@@ -4,14 +4,13 @@ import com.sportlink.sportlink.SportlinkApplication;
 import com.sportlink.sportlink.account.account.ACCOUNT_STATUS;
 import com.sportlink.sportlink.account.account.Account;
 import com.sportlink.sportlink.account.account.AccountService;
-import com.sportlink.sportlink.account.account.DTO_Account;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.account.user.UserAccountService;
 import com.sportlink.sportlink.consent.ConsentService;
 import com.sportlink.sportlink.consent.DTO_Consent;
 import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.registration.DTO_CompanyRegistration;
-import com.sportlink.sportlink.registration.DTO_UserRegistration;
+import com.sportlink.sportlink.registration.RegistrationPayload;
 import com.sportlink.sportlink.registration.RegistrationService;
 import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.utils.EmailSender;
@@ -66,7 +65,7 @@ public class UserAccountRegistrationIT {
     @Test
     public void testStartAndCompleteRegistration_SuccessfulFlow() throws MessagingException {
         // Arrange
-        DTO_UserRegistration registrationData = new DTO_UserRegistration();
+        RegistrationPayload registrationData = new RegistrationPayload();
         registrationData.setLoginEmail("testuser@example.com");
         registrationData.setUsername("testuser");
         registrationData.setPassword("securePassword123");
@@ -87,9 +86,8 @@ public class UserAccountRegistrationIT {
         // Verify user exists in database
         String val = redisService.getValue(registrationData.getUsername());
         assertNotNull(val);
-        DTO_UserRegistration registered = PayloadParser.parseJsonToObject(val, DTO_UserRegistration.class);
+        RegistrationPayload registered = PayloadParser.parseJsonToObject(val, RegistrationPayload.class);
         assertNotEquals("securePassword123", registered.getPassword());
-        assertNotNull(registered.getSalt());
         assertEquals(registrationData.getFirstName(), registered.getFirstName());
         assertEquals(registrationData.getLastName(), registered.getLastName());
         assertEquals(registrationData.getLoginEmail(), registered.getLoginEmail());
@@ -106,7 +104,7 @@ public class UserAccountRegistrationIT {
     @Test
     public void testStartRegistration_UserAlreadyExists() {
         // Arrange
-        DTO_UserRegistration registrationData = new DTO_UserRegistration();
+        RegistrationPayload registrationData = new RegistrationPayload();
         registrationData.setLoginEmail("existinguser@example.com");
         registrationData.setUsername("existinguser");
         registrationData.setPassword("securePassword123");
@@ -123,7 +121,7 @@ public class UserAccountRegistrationIT {
     @Test
     public void testCompleteRegistration_InvalidOTP() {
         // Arrange
-        DTO_UserRegistration registrationData = new DTO_UserRegistration();
+        RegistrationPayload registrationData = new RegistrationPayload();
         registrationData.setLoginEmail("invalidotp@example.com");
         registrationData.setUsername("invalidotpuser");
         registrationData.setPassword("securePassword123");

@@ -37,7 +37,7 @@ public class SecurityConfig {
                 .authenticationProvider(accountAuthenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authorizeRequests ->
-                        authorizeRequests.anyRequest().authenticated());
+                        authorizeRequests.anyRequest().permitAll());
         return http.build();
     }
 

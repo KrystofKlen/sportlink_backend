@@ -25,10 +25,17 @@ public class RedeemTransactionManager {
     @Transactional
     public RESULT_CODE redeemVoucher(long voucherId, UserAccount userAccount) {
         Voucher voucher = voucherRepository.findById(voucherId).orElseThrow();
-        String currencyNeeded = voucher.getCurrency().getName();
+
+        if (voucher.getState() == VOUCHER_STATE.REDEEMED) {
+            // voucher already redeemed
+            return RESULT_CODE.VOUCHER_NOT_AVAILABLE;
+        }
         int amountNeeded = voucher.getPrice();
 
         // check if user has enough money
+        if(userAccount.getBalance().isEmpty() || !userAccount.getBalance().containsKey(voucher.getCurrency())){
+            return RESULT_CODE.INSUFFICIENT_FUNDS;
+        }
         int updatedAmount = userAccount.getBalance().get(voucher.getCurrency()) - amountNeeded;
         if (updatedAmount < 0) {
             return INSUFFICIENT_FUNDS;

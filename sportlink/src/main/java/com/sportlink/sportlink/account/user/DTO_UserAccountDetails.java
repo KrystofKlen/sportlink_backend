@@ -1,32 +1,24 @@
-package com.sportlink.sportlink.account.account;
+package com.sportlink.sportlink.account.user;
 
 import com.sportlink.sportlink.account.ROLE;
-import jakarta.persistence.*;
+import com.sportlink.sportlink.account.account.ACCOUNT_STATUS;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
-@NoArgsConstructor
-@AllArgsConstructor
+import java.util.Date;
+
 @Data
-public class Account {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+@AllArgsConstructor
+@NoArgsConstructor
+public class DTO_UserAccountDetails {
     private Long id;
-
-    @Column(unique=true)
     private String loginEmail;
-
-    @Column(unique=true)
     private String username;
-
-    private String password;
-
     private ROLE role;
-
     private String profilePicUUID;
-
     private ACCOUNT_STATUS status;
+    private String firstName;
+    private String lastName;
+    private Date dateOfBirth;
 }

@@ -2,8 +2,8 @@ package com.sportlink.sportlink.registration;
 
 import com.sportlink.sportlink.account.account.Account;
 import com.sportlink.sportlink.account.account.AccountService;
+import com.sportlink.sportlink.account.account.DTO_Account;
 import com.sportlink.sportlink.account.company.CompanyAccount;
-import com.sportlink.sportlink.account.user.DTO_UserAccount;
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.account.user.UserAccountService;
 import com.sportlink.sportlink.consent.ConsentService;
@@ -25,7 +25,6 @@ import java.util.Optional;
 @Slf4j
 public class RegistrationService {
 
-    private final UserAccountService userAccountService;
     private final EncryptionUtil.SaltGenerator saltGenerator;
     private final PasswordEncoder passwordEncoder;
     private final I_CurrencyRepository currencyRepository;
@@ -34,7 +33,7 @@ public class RegistrationService {
     private final ConsentService consentService;
 
     @Transactional
-    public String startRegistration(DTO_UserRegistration registrationData) {
+    public String startRegistration(RegistrationPayload registrationData) {
 
         if (!approveUniqueValues(registrationData.getLoginEmail(), registrationData.getUsername())) {
             throw new IllegalStateException("User account already exists");
@@ -43,7 +42,6 @@ public class RegistrationService {
         // salt passwd
         String salt = saltGenerator.generateSalt();
         String passwd = passwordEncoder.encode(registrationData.getPassword() + salt);
-        registrationData.setSalt(salt);
         registrationData.setPassword(passwd);
 
         // store otp and registration data into redis
@@ -64,7 +62,7 @@ public class RegistrationService {
 
         // retrieve from redis
         String payload = redisService.getValue(username);
-        DTO_UserRegistration userRegistration = (DTO_UserRegistration) PayloadParser.parseJsonToObject(payload, DTO_UserRegistration.class);
+        RegistrationPayload userRegistration = (RegistrationPayload) PayloadParser.parseJsonToObject(payload, RegistrationPayload.class);
         String email = userRegistration.getLoginEmail();
         String expectedOTP = redisService.getValue(email);
         if (!expectedOTP.equals(otp)) {
@@ -76,7 +74,6 @@ public class RegistrationService {
                 email,
                 username,
                 userRegistration.getPassword(),
-                userRegistration.getSalt(),
                 userRegistration.getFirstName(),
                 userRegistration.getLastName(),
                 userRegistration.getDateOfBirth());
@@ -102,7 +99,6 @@ public class RegistrationService {
                 registrationData.getLoginEmail(),
                 registrationData.getUsername(),
                 passwd,
-                salt,
                 registrationData.getName(),
                 registrationData.getAddress(),
                 registrationData.getPhone(),
@@ -126,8 +122,8 @@ public class RegistrationService {
 
     private boolean approveUniqueValues(String email, String username, String currency) {
         // check if username and email are free
-        Optional<DTO_UserAccount> sameEmailUser = userAccountService.findByEmail(email);
-        Optional<DTO_UserAccount> sameUsernameUser = userAccountService.findByUsername(username);
+        Optional<Account> sameEmailUser = accountService.findAccountByEmail(email);
+        Optional<DTO_Account> sameUsernameUser = accountService.findDTOAccountByUsername(username);
         Optional<Currency> sameCurrency = currencyRepository.findCurrencyByName(currency);
 
         boolean emailFree = sameEmailUser.isEmpty() && redisService.getValue(email) == null;
@@ -139,8 +135,8 @@ public class RegistrationService {
 
     private boolean approveUniqueValues(String email, String username) {
         // check if username and email are free
-        Optional<DTO_UserAccount> sameEmailUser = userAccountService.findByEmail(email);
-        Optional<DTO_UserAccount> sameUsernameUser = userAccountService.findByUsername(username);
+        Optional<Account> sameEmailUser = accountService.findAccountByEmail(email);
+        Optional<DTO_Account> sameUsernameUser = accountService.findDTOAccountByUsername(username);
 
         boolean emailFree = sameEmailUser.isEmpty() && redisService.getValue(email) == null;
         boolean usernameFree = sameUsernameUser.isEmpty() && redisService.getValue(username) == null;
