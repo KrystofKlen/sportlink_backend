@@ -8,6 +8,7 @@ import com.sportlink.sportlink.visit.VisitState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
 import static com.sportlink.sportlink.verification.reward.REWARD_CONDITION.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@ActiveProfiles("test")
 public class RewardVerificationFactoryUT {
 
     private DTO_Reward reward;

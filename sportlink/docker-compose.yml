@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: sportlink_postgres_2
+    environment:
+      POSTGRES_DB: sportlink_db
+      POSTGRES_USER: tester
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "5432:5432"
+    networks:
+      - sportlink_network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sportlink_backend
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/sportlink_db
+      SPRING_DATASOURCE_USERNAME: tester
+      SPRING_DATASOURCE_PASSWORD: 1234
+      PROFILE: seeder
+    ports:
+      - "8080:8080"
+    networks:
+      - sportlink_network
+
+networks:
+  sportlink_network:
+    driver: bridge

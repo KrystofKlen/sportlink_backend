@@ -46,7 +46,7 @@ public class RedeemTransactionManager {
 
         voucher.setBuyer(userAccount);
 
-        Transfer transfer = new Transfer(null, userAccount, LocalDateTime.now(), voucher.getCurrency(), voucher.getPrice());
+        Transfer transfer = new Transfer(null, userAccount, LocalDateTime.now(), voucher.getCurrency(), -voucher.getPrice());
         transferRepository.save(transfer);
 
         // update voucher

@@ -16,12 +16,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ActiveProfiles("test")
 @SpringBootTest(classes = SportlinkApplication.class)
 @Transactional
 class RedeemManagerIT {
@@ -85,8 +87,8 @@ class RedeemManagerIT {
         assertEquals(100, updatedUserAccount.getBalance().get(testVoucher.getCurrency()));
 
         assertTrue(transferRepository.findAll().stream().anyMatch(transfer ->
-                transfer.getReceiver().getId().equals(testUserAccount.getId()) &&
-                        transfer.getAmount() == testVoucher.getPrice()
+                transfer.getUser().getId().equals(testUserAccount.getId()) &&
+                        transfer.getAmount() == -testVoucher.getPrice()
         ));
     }
 

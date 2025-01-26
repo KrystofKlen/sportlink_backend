@@ -26,7 +26,7 @@ import java.util.*;
 
 @Slf4j
 @Component
-@Profile("postman")
+@Profile("seeder")
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 

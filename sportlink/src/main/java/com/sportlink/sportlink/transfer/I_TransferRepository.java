@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface I_TransferRepository extends JpaRepository<Transfer, Long> {
 
-    @Query("SELECT t FROM Transfer t WHERE t.receiver.id =:userId")
+    @Query("SELECT t FROM Transfer t WHERE t.user.id =:userId")
     Page<Transfer> findAllByUserId(Pageable pageable, @Param("userId") Long userId);
 
 }

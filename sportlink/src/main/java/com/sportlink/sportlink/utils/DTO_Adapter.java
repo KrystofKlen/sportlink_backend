@@ -117,7 +117,7 @@ public class DTO_Adapter {
     public DTO_Transfer getDTO_Transfer(Transfer transfer) {
         return new DTO_Transfer(
                 transfer.getId(),
-                getDTO_UserAccount(transfer.getReceiver()),
+                getDTO_UserAccount(transfer.getUser()),
                 transfer.getTimestamp(),
                 transfer.getCurrency().getName(),
                 transfer.getAmount()

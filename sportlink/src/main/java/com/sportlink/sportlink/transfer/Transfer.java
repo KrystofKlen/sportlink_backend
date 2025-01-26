@@ -21,7 +21,7 @@ public class Transfer {
 
     @ManyToOne
     @JoinColumn(name = "receiver_id")
-    private UserAccount receiver;
+    private UserAccount user;
 
     private LocalDateTime timestamp;
 

@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -34,6 +35,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
+@ActiveProfiles("test")
 @SpringBootTest(classes = SportlinkApplication.class)
 @Transactional
 class VisitTransactionManagerIT {
@@ -161,7 +163,7 @@ class VisitTransactionManagerIT {
         // check transfers
         assertEquals(1, transferRepository.count());
         Transfer savedTransfer = transferRepository.findAll().get(0);
-        assertEquals(visitor.getId(), savedTransfer.getReceiver().getId());
+        assertEquals(visitor.getId(), savedTransfer.getUser().getId());
         assertEquals("CURRENCY-TEST", savedTransfer.getCurrency().getName());
         assertEquals(30, savedTransfer.getAmount());
 
@@ -191,12 +193,12 @@ class VisitTransactionManagerIT {
         // check transfers
         assertEquals(2, transferRepository.count());
         Transfer savedTransfer = transferRepository.findAll().get(0);
-        assertEquals(visitor.getId(), savedTransfer.getReceiver().getId());
+        assertEquals(visitor.getId(), savedTransfer.getUser().getId());
         assertEquals("CURRENCY-TEST", savedTransfer.getCurrency().getName());
         assertEquals(5, savedTransfer.getAmount());
 
         savedTransfer = transferRepository.findAll().get(1);
-        assertEquals(visitor.getId(), savedTransfer.getReceiver().getId());
+        assertEquals(visitor.getId(), savedTransfer.getUser().getId());
         assertEquals("CURRENCY-TEST", savedTransfer.getCurrency().getName());
         assertEquals(30, savedTransfer.getAmount());
 

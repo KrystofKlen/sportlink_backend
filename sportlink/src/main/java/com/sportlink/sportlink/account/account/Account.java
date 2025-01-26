@@ -24,9 +24,11 @@ public class Account {
 
     private String password;
 
+    @Enumerated(EnumType.STRING)
     private ROLE role;
 
     private String profilePicUUID;
 
+    @Enumerated(EnumType.STRING)
     private ACCOUNT_STATUS status;
 }
