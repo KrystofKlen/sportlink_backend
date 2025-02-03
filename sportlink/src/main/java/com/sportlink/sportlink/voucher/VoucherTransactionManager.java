@@ -60,8 +60,12 @@ public class VoucherTransactionManager {
     }
 
     @Transactional
-    public RESULT_CODE redeemVoucher(RedeemRequest redeemRequest, long companyId) {
+    public RESULT_CODE redeemVoucher(RedeemRequest redeemRequest, long companyId, String otp) {
         Voucher voucher = voucherRepository.findById(redeemRequest.voucherId).orElseThrow();
+
+        if(otp==null || !otp.equals(redeemRequest.otp)){
+            return INVALID_CODE;
+        }
 
         // check code matches
         try {

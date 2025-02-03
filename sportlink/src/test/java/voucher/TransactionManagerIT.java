@@ -139,8 +139,8 @@ class TransactionManagerIT {
         }
         testVoucher = voucherRepository.save(testVoucher);
 
-        RedeemRequest redeemRequest = new RedeemRequest(testVoucher.getId(), "validCode");
-        RESULT_CODE result = voucherTransactionManager.redeemVoucher(redeemRequest, testVoucher.getIssuer().getId());
+        RedeemRequest redeemRequest = new RedeemRequest(testVoucher.getId(), "validCode","1234");
+        RESULT_CODE result = voucherTransactionManager.redeemVoucher(redeemRequest, testVoucher.getIssuer().getId(),"1234");
 
         assertEquals(RESULT_CODE.REDEEMED, result);
         assertEquals(VOUCHER_STATE.REDEEMED, voucherRepository.findById(testVoucher.getId()).orElseThrow().getState());
@@ -156,8 +156,8 @@ class TransactionManagerIT {
         }
         testVoucher = voucherRepository.save(testVoucher);
 
-        RedeemRequest redeemRequest = new RedeemRequest(testVoucher.getId(), "wrongCode");
-        RESULT_CODE result = voucherTransactionManager.redeemVoucher(redeemRequest, testVoucher.getIssuer().getId());
+        RedeemRequest redeemRequest = new RedeemRequest(testVoucher.getId(), "wrongCode","1234");
+        RESULT_CODE result = voucherTransactionManager.redeemVoucher(redeemRequest, testVoucher.getIssuer().getId(),"1234");
 
         assertEquals(RESULT_CODE.INVALID_CODE, result);
         assertEquals(VOUCHER_STATE.BOUGHT, voucherRepository.findById(testVoucher.getId()).orElseThrow().getState());
@@ -174,8 +174,8 @@ class TransactionManagerIT {
         testVoucher = voucherRepository.save(testVoucher);
 
         long differentCompanyId = testVoucher.getIssuer().getId() + 1;
-        RedeemRequest redeemRequest = new RedeemRequest(testVoucher.getId(), "validCode");
-        RESULT_CODE result = voucherTransactionManager.redeemVoucher(redeemRequest, differentCompanyId);
+        RedeemRequest redeemRequest = new RedeemRequest(testVoucher.getId(), "validCode","1234");
+        RESULT_CODE result = voucherTransactionManager.redeemVoucher(redeemRequest, differentCompanyId,"1234");
 
         assertEquals(RESULT_CODE.VOUCHER_ISSUED_BY_ANOTHER_ISSUER, result);
         assertEquals(VOUCHER_STATE.BOUGHT, voucherRepository.findById(testVoucher.getId()).orElseThrow().getState());
@@ -191,8 +191,8 @@ class TransactionManagerIT {
         }
         testVoucher = voucherRepository.save(testVoucher);
 
-        RedeemRequest redeemRequest = new RedeemRequest(testVoucher.getId(), "validCode");
-        RESULT_CODE result = voucherTransactionManager.redeemVoucher(redeemRequest, testVoucher.getIssuer().getId());
+        RedeemRequest redeemRequest = new RedeemRequest(testVoucher.getId(), "validCode","1234");
+        RESULT_CODE result = voucherTransactionManager.redeemVoucher(redeemRequest, testVoucher.getIssuer().getId(),"1234");
 
         assertEquals(RESULT_CODE.WRONG_VOUCHER_STATE, result);
         assertEquals(VOUCHER_STATE.IN_OFFER, voucherRepository.findById(testVoucher.getId()).orElseThrow().getState());
@@ -201,10 +201,10 @@ class TransactionManagerIT {
     @Test
     void redeemVoucher_shouldThrowExceptionWhenVoucherNotFound() {
         long nonExistentVoucherId = 999L;
-        RedeemRequest redeemRequest = new RedeemRequest(nonExistentVoucherId, "someCode");
+        RedeemRequest redeemRequest = new RedeemRequest(nonExistentVoucherId, "someCode","1234");
 
         assertThrows(Exception.class, () ->
-                voucherTransactionManager.redeemVoucher(redeemRequest, testUserAccount.getId())
+                voucherTransactionManager.redeemVoucher(redeemRequest, testUserAccount.getId(),"1234")
         );
     }
 

@@ -3,6 +3,7 @@ package com.sportlink.sportlink.voucher;
 import com.sportlink.sportlink.account.account.AccountService;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.account.user.UserAccount;
+import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.security.SecurityUtils;
 import com.sportlink.sportlink.utils.ImgService;
 import com.sportlink.sportlink.utils.RESULT_CODE;
@@ -29,6 +30,7 @@ public class VoucherController {
     private final VoucherTransactionManager voucherTransactionManager;
     private final AccountService accountService;
     private final ImgService imgService;
+    private final RedisService redisService;
 
 
     @PostMapping
@@ -135,13 +137,23 @@ public class VoucherController {
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
+    @PutMapping("/make-redeem-ready")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<String> unlockForRedeem(@RequestParam Long voucherId) {
+        Long userId = SecurityUtils.getCurrentAccountId();
+        String otp = voucherService.createOTP(voucherId, userId);
+        return ResponseEntity.ok(otp);
+    }
+
     @PostMapping("/redeem")
     @PreAuthorize("hasRole('COMPANY')")
     public ResponseEntity<String> redeemVoucher(@RequestBody RedeemRequest redeemRequest) {
         Long companyId = SecurityUtils.getCurrentAccountId();
 
+        String otp = redisService.getValue("VOUCHER:"+redeemRequest.getVoucherId());
+
         try {
-            RESULT_CODE result = voucherTransactionManager.redeemVoucher(redeemRequest, companyId);
+            RESULT_CODE result = voucherTransactionManager.redeemVoucher(redeemRequest, companyId, otp);
             switch (result) {
                 case INVALID_CODE -> {
                     return new ResponseEntity<>(INVALID_CODE.toString(), HttpStatus.BAD_REQUEST);

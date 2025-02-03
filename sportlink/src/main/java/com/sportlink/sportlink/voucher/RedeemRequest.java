@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class RedeemRequest {
     Long voucherId;
     String voucherCode;
+    String otp;
 }

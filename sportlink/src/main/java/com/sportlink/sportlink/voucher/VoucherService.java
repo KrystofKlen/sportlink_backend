@@ -6,6 +6,7 @@ import com.sportlink.sportlink.account.account.I_AccountRepository;
 import com.sportlink.sportlink.account.company.CompanyAccount;
 import com.sportlink.sportlink.currency.Currency;
 import com.sportlink.sportlink.currency.I_CurrencyRepository;
+import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.utils.ImgService;
 import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.utils.DTO_Adapter;
@@ -38,6 +39,7 @@ public class VoucherService {
     private final I_VoucherRepository voucherRepository;
     private final DTO_Adapter adapter;
     private final ImgService imgService;
+    private final RedisService redisService;
 
 
     @Transactional
@@ -157,4 +159,14 @@ public class VoucherService {
         voucherRepository.saveAll(expiredVouchers);
     }
 
+    public String createOTP(Long voucherId, Long accountRequestingId) {
+        Voucher voucher = voucherRepository.findById(voucherId).orElseThrow();
+        if(voucher.getBuyer() == null || voucher.getBuyer().getId() != accountRequestingId){
+            throw new RuntimeException("Not authorized");
+        }
+        String key = "VOUCHER:"+voucherId;
+        String value = EncryptionUtil.generateRandomSequence(10);
+        redisService.saveValueWithExpiration(key,value,1);
+        return value;
+    }
 }
