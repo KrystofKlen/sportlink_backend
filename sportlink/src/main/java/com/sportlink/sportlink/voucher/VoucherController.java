@@ -26,7 +26,7 @@ import static com.sportlink.sportlink.utils.RESULT_CODE.*;
 @AllArgsConstructor
 public class VoucherController {
     private final VoucherService voucherService;
-    private final RedeemTransactionManager redeemTransactionManager;
+    private final VoucherTransactionManager voucherTransactionManager;
     private final AccountService accountService;
     private final ImgService imgService;
 
@@ -99,19 +99,19 @@ public class VoucherController {
         return ResponseEntity.ok(result);
     }
 
-    @PostMapping("/redeem/{voucherId}")
+    @PostMapping("/buy/{voucherId}")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<String> redeemVoucher(@PathVariable Long voucherId) {
+    public ResponseEntity<String> buyVoucher(@PathVariable Long voucherId) {
         Long userId = SecurityUtils.getCurrentAccountId();
         UserAccount user = (UserAccount) accountService.findAccountById(userId).orElseThrow();
         try {
-            RESULT_CODE result = redeemTransactionManager.redeemVoucher(voucherId, user);
+            RESULT_CODE result = voucherTransactionManager.buyVoucher(voucherId, user);
             switch (result) {
                 case INSUFFICIENT_FUNDS -> {
                     return new ResponseEntity<>(INSUFFICIENT_FUNDS.toString(), HttpStatus.BAD_REQUEST);
                 }
-                case REDEEMED -> {
-                    return new ResponseEntity<>(REDEEMED.toString(), HttpStatus.OK);
+                case BOUGHT -> {
+                    return new ResponseEntity<>(BOUGHT.toString(), HttpStatus.OK);
                 }
                 case VOUCHER_NOT_AVAILABLE -> {
                     return new ResponseEntity<>(VOUCHER_NOT_AVAILABLE.toString(), HttpStatus.BAD_REQUEST);
@@ -133,5 +133,34 @@ public class VoucherController {
             return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(image.get());
         }
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    }
+
+    @PostMapping("/redeem")
+    @PreAuthorize("hasRole('COMPANY')")
+    public ResponseEntity<String> redeemVoucher(@RequestBody RedeemRequest redeemRequest) {
+        Long companyId = SecurityUtils.getCurrentAccountId();
+
+        try {
+            RESULT_CODE result = voucherTransactionManager.redeemVoucher(redeemRequest, companyId);
+            switch (result) {
+                case INVALID_CODE -> {
+                    return new ResponseEntity<>(INVALID_CODE.toString(), HttpStatus.BAD_REQUEST);
+                }
+                case VOUCHER_ISSUED_BY_ANOTHER_ISSUER -> {
+                    return new ResponseEntity<>(VOUCHER_ISSUED_BY_ANOTHER_ISSUER.toString(), HttpStatus.BAD_REQUEST);
+                }
+                case WRONG_VOUCHER_STATE -> {
+                    return new ResponseEntity<>(WRONG_VOUCHER_STATE.toString(), HttpStatus.BAD_REQUEST);
+                }
+                case REDEEMED -> {
+                    return new ResponseEntity<>(REDEEMED.toString(), HttpStatus.OK);
+                }
+                default -> {
+                    return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
     }
 }

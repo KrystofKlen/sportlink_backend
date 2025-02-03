@@ -13,6 +13,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -75,5 +78,29 @@ class VoucherServiceUT {
         assertTrue(result.isEmpty());
         verify(voucherRepository).findById(voucherId);
         verifyNoInteractions(adapter);
+    }
+
+    @Test
+    void testUpdateExpiredVouchers() {
+        // Given
+        LocalDate today = LocalDate.now();
+
+        Voucher validVoucher = new Voucher();
+        validVoucher.setState(VOUCHER_STATE.BOUGHT);
+        validVoucher.setExpirationDate(today);
+        Voucher expiredVoucher = new Voucher(); // Should expire
+        expiredVoucher.setState(VOUCHER_STATE.IN_OFFER);
+        expiredVoucher.setExpirationDate(today.minusDays(2));
+
+        List<Voucher> vouchers = Arrays.asList(validVoucher, expiredVoucher);
+
+        when(voucherRepository.findAll()).thenReturn(vouchers);
+
+        // When
+        voucherService.expireVouchers();
+
+        // Then
+        assertEquals(VOUCHER_STATE.EXPIRED, expiredVoucher.getState()); // Should be updated
+        assertEquals(VOUCHER_STATE.BOUGHT, validVoucher.getState()); // Should remain unchanged
     }
 }

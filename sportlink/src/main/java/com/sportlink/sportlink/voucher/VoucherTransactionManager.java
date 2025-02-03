@@ -2,31 +2,33 @@ package com.sportlink.sportlink.voucher;
 
 import com.sportlink.sportlink.account.account.I_AccountRepository;
 import com.sportlink.sportlink.account.user.UserAccount;
+import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.transfer.I_TransferRepository;
 import com.sportlink.sportlink.transfer.Transfer;
 import com.sportlink.sportlink.utils.RESULT_CODE;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
-import static com.sportlink.sportlink.utils.RESULT_CODE.INSUFFICIENT_FUNDS;
-import static com.sportlink.sportlink.utils.RESULT_CODE.REDEEMED;
+import static com.sportlink.sportlink.utils.RESULT_CODE.*;
 
 @Service
 @AllArgsConstructor
-public class RedeemTransactionManager {
+@Slf4j
+public class VoucherTransactionManager {
 
     private final I_VoucherRepository voucherRepository;
     private final I_TransferRepository transferRepository;
     private final I_AccountRepository accountRepository;
 
     @Transactional
-    public RESULT_CODE redeemVoucher(long voucherId, UserAccount userAccount) {
+    public RESULT_CODE buyVoucher(long voucherId, UserAccount userAccount) {
         Voucher voucher = voucherRepository.findById(voucherId).orElseThrow();
 
-        if (voucher.getState() == VOUCHER_STATE.REDEEMED) {
+        if (voucher.getState() == VOUCHER_STATE.BOUGHT) {
             // voucher already redeemed
             return RESULT_CODE.VOUCHER_NOT_AVAILABLE;
         }
@@ -50,9 +52,42 @@ public class RedeemTransactionManager {
         transferRepository.save(transfer);
 
         // update voucher
+        voucher.setState(VOUCHER_STATE.BOUGHT);
+        voucherRepository.save(voucher);
+
+        log.info("Voucher bought: " + voucher.getId() + ", accountBuying: " + userAccount.getId());
+        return BOUGHT;
+    }
+
+    @Transactional
+    public RESULT_CODE redeemVoucher(RedeemRequest redeemRequest, long companyId) {
+        Voucher voucher = voucherRepository.findById(redeemRequest.voucherId).orElseThrow();
+
+        // check code matches
+        try {
+            String code = EncryptionUtil.decrypt(voucher.getCode());
+            if(!code.equals(redeemRequest.voucherCode)){
+                return INVALID_CODE;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        // check account issuing voucher also requests redeem
+        if(voucher.getIssuer().getId() != companyId){
+            return VOUCHER_ISSUED_BY_ANOTHER_ISSUER;
+        }
+
+        // check correct voucher state
+        if (voucher.getState() != VOUCHER_STATE.BOUGHT) {
+            return WRONG_VOUCHER_STATE;
+        }
+
+        // redeem
         voucher.setState(VOUCHER_STATE.REDEEMED);
         voucherRepository.save(voucher);
 
+        log.info("Voucher redeemed: " + voucher.getId() + ", accountRedeeming: " + companyId);
         return REDEEMED;
     }
 }

@@ -15,14 +15,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.sportlink.sportlink.voucher.VOUCHER_STATE.EXPIRED;
 import static com.sportlink.sportlink.voucher.VOUCHER_STATE.IN_OFFER;
 
 @Service
@@ -100,8 +103,8 @@ public class VoucherService {
             return;
         }
 
-        if (existingVoucherOpt.get().getState().equals(VOUCHER_STATE.REDEEMED)) {
-            throw new RuntimeException("Voucher state is REDEEMED");
+        if (existingVoucherOpt.get().getState().equals(VOUCHER_STATE.BOUGHT)) {
+            throw new RuntimeException("Voucher state is BOUGHT");
         }
 
         Account acc = accountRepository.findById(accountRequestingId).orElseThrow();
@@ -133,6 +136,25 @@ public class VoucherService {
             uuids.add(filename);
         }
         return uuids;
+    }
+
+    @Scheduled(cron = "0 0 0 * * ?") // Runs at midnight every day
+    @Transactional
+    public void expireVouchers() {
+        LocalDate today = LocalDate.now();
+        List<Voucher> allVouchers = voucherRepository.findAll();
+        List<Voucher> expiredVouchers = new ArrayList<>();
+        allVouchers.forEach(voucher -> {
+            if(!voucher.getState().equals(EXPIRED) && voucher.getExpirationDate().isBefore(today)){
+                expiredVouchers.add(voucher);
+            }
+        });
+
+        expiredVouchers.forEach(voucher -> {
+            voucher.setState(VOUCHER_STATE.EXPIRED);
+        });
+
+        voucherRepository.saveAll(expiredVouchers);
     }
 
 }
