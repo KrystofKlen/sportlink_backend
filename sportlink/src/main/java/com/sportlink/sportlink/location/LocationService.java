@@ -6,6 +6,7 @@ import com.sportlink.sportlink.currency.Currency;
 import com.sportlink.sportlink.currency.I_CurrencyRepository;
 import com.sportlink.sportlink.reward.DTO_Reward;
 import com.sportlink.sportlink.reward.Reward;
+import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import com.sportlink.sportlink.utils.ImgService;
 import com.sportlink.sportlink.verification.I_VerificationStrategy;
@@ -232,4 +233,14 @@ public class LocationService {
         return locationRepository.getRewardsForLocation(locationId);
     }
 
+    @Transactional
+    public String refreshCode(Long locationId, Long accountRequestingId) {
+        Location location = locationRepository.findById(locationId).orElseThrow();
+        if(location.getIssuer().getId() != accountRequestingId){
+            throw new RuntimeException();
+        }
+        location.setCode(EncryptionUtil.generateRandomSequence(10));
+        location = locationRepository.save(location);
+        return location.getCode();
+    }
 }

@@ -196,4 +196,12 @@ public class LocationController {
             return ResponseEntity.status(500).body("Failed to delete image.");
         }
     }
+
+    @PatchMapping("/refresh-code/{locationId}")
+    @PreAuthorize("hasAnyRole('ADMIN','COMPANY')")
+    public ResponseEntity<String> refreshLocationCode(@PathVariable Long locationId) {
+        Long accountId = SecurityUtils.getCurrentAccountId();
+        String newCode = locationService.refreshCode(accountId, locationId);
+        return ResponseEntity.ok(newCode);
+    }
 }
