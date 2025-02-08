@@ -46,10 +46,6 @@ class VisitServiceIT {
 
     @BeforeEach
     void setUp() {
-        i_AccountRepository.deleteAll();
-        i_LocationRepository.deleteAll();
-        visitRepository.deleteAll();
-
         visitor = new UserAccount(); // Configure as needed
         visitor.setUsername("visitor");
         visitor = i_AccountRepository.save(visitor);

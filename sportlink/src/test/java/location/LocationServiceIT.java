@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ActiveProfiles("test")
 @SpringBootTest(classes = SportlinkApplication.class)
+@Transactional
 public class LocationServiceIT {
     @Autowired
     private LocationService locationService;

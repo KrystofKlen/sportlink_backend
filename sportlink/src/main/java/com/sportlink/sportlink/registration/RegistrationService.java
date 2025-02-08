@@ -4,11 +4,14 @@ import com.sportlink.sportlink.account.account.Account;
 import com.sportlink.sportlink.account.account.AccountService;
 import com.sportlink.sportlink.account.account.DTO_Account;
 import com.sportlink.sportlink.account.company.CompanyAccount;
+import com.sportlink.sportlink.account.device.LocationDevice;
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.account.user.UserAccountService;
 import com.sportlink.sportlink.consent.ConsentService;
 import com.sportlink.sportlink.currency.Currency;
 import com.sportlink.sportlink.currency.I_CurrencyRepository;
+import com.sportlink.sportlink.location.I_LocationRepository;
+import com.sportlink.sportlink.location.Location;
 import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.utils.PayloadParser;
@@ -31,6 +34,7 @@ public class RegistrationService {
     private final RedisService redisService;
     private final AccountService accountService;
     private final ConsentService consentService;
+    private final I_LocationRepository locationRepository;
 
     @Transactional
     public String startRegistration(RegistrationPayload registrationData) {
@@ -118,6 +122,25 @@ public class RegistrationService {
         log.info("Company account registration requested - username:" + saved.getUsername() + " id:" + saved.getId() );
 
         return saved.getId();
+    }
+
+    @Transactional
+    public void registerLocationDevice(DTO_DeviceRegistration registrationData, Long accountRequestingId) {
+        boolean unique = approveUniqueValues(registrationData.getLoginEmail(), registrationData.getUsername());
+        if(!unique){
+            throw new IllegalStateException("User account already exists");
+        }
+        LocationDevice locationDevice = new LocationDevice();
+        locationDevice.setLoginEmail(registrationData.getLoginEmail());
+        locationDevice.setUsername(registrationData.getUsername());
+        String encryptedPasswd = passwordEncoder.encode(registrationData.password);
+        locationDevice.setPassword(encryptedPasswd);
+        Location location = locationRepository.findById(registrationData.locationId).orElseThrow();
+        if( location.getIssuer().getId() != accountRequestingId ) {
+            throw new IllegalStateException("Invalid location");
+        }
+        locationDevice.setLocation(location);
+        accountService.save(locationDevice);
     }
 
     private boolean approveUniqueValues(String email, String username, String currency) {

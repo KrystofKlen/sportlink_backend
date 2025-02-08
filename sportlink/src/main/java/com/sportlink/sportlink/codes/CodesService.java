@@ -11,9 +11,9 @@ import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.sportlink.sportlink.account.account.Account;
 import com.sportlink.sportlink.account.account.I_AccountRepository;
+import com.sportlink.sportlink.account.device.LocationDevice;
 import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.security.EncryptionUtil;
-import com.sportlink.sportlink.socket.WebSocketHandler;
 import com.sportlink.sportlink.utils.EmailSender;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,18 +28,16 @@ import java.util.Optional;
 public class CodesService {
 
     private final RedisService redisService;
-    private final WebSocketHandler webSocketHandler;
     private final I_AccountRepository accountRepository;
     private final EmailSender emailSender;
 
-    // sends code to location, where it will be scanned by user
-    public String sendLocationOTP(long locationId, long userId) {
+    public String establishLocationOTP(long userId, long locationDeviceId) {
+        LocationDevice locationDevice = (LocationDevice) accountRepository.findById(locationDeviceId).orElseThrow();
+        Long locationId = locationDevice.getLocation().getId();
         String code = EncryptionUtil.generateRandomSequence(10);
-        String payload = Long.toString(userId);
+        String payload = userId + "-" + locationId;
         redisService.saveValueWithExpiration(code, payload, 1);
-        // send to location
-        webSocketHandler.sendCodeToLocation(locationId, code);
-        log.info("Send location OTP code: " + code + " locationId: " + locationId + " userId: " + userId);
+        log.info("Location requested verification " + code + " locationId: " + locationId + " userId: " + userId);
         return code;
     }
 

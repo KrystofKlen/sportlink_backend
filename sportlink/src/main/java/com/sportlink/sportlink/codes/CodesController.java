@@ -1,5 +1,6 @@
 package com.sportlink.sportlink.codes;
 
+import com.sportlink.sportlink.security.SecurityUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,12 +17,14 @@ public class CodesController {
     }
 
     @GetMapping("/otp-for-location")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<DTO_Code> requestOTPLocation(@RequestParam long userId, @RequestParam long locationId) {
-        String code = codesService.sendLocationOTP(userId, locationId);
+    @PreAuthorize("hasRole('LOCATION_DEVICE')")
+    public ResponseEntity<DTO_Code> requestOTPLocation(@RequestParam long userId) {
+        Long accountId = SecurityUtils.getCurrentAccountId();
+
+        String code = codesService.establishLocationOTP(userId, accountId);
         DTO_Code dto = new DTO_Code();
         dto.setCode(code);
-        dto.setSecondsExp(1 * 60 - 2);
+        dto.setSecondsExp(58);
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 

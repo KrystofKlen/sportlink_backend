@@ -128,7 +128,7 @@ public class LocationVerificationFactoryUT {
     @Test
     void testUserScanOneTimeCodeVerification() {
         // Setup: USER_SCAN_ONETIME_CODE
-        when(redisService.getValue(dtoRequest.getCode())).thenReturn("2");
+        when(redisService.getValue(dtoRequest.getCode())).thenReturn("2-1");
 
         List<I_VerificationStrategy> strategies = locationVerificationFactory.getVerificationStrategyList(
                 dtoRequest,
@@ -136,15 +136,27 @@ public class LocationVerificationFactoryUT {
         );
 
         List<Boolean> actualResults = verifyStrategies(strategies);
-        List<Boolean> expectedResults = List.of(true); // Assuming code data matches.
+        List<Boolean> expectedResults = List.of(true,true); // Assuming code data matches.
 
         assertEquals(expectedResults, actualResults, "USER_SCAN_ONETIME_CODE strategy verification failed.");
     }
 
     @Test
-    void testUserScanOneTimeCodeVerificationFails() {
+    void testUserScanOneTimeCodeVerificationFails1() {
         // Setup: USER_SCAN_ONETIME_CODE with invalid Redis data
         when(redisService.getValue(dtoRequest.getCode())).thenReturn(null);
+
+        try {
+            locationVerificationFactory.getVerificationStrategyList(dtoRequest,Set.of(USER_SCAN_ONETIME_CODE));
+        } catch (EntityNotFoundException ex) {
+            assertEquals(EntityNotFoundException.class, ex.getClass());
+        }
+    }
+
+    @Test
+    void testUserScanOneTimeCodeVerificationFails2() {
+        // Setup: USER_SCAN_ONETIME_CODE with invalid Redis data
+        when(redisService.getValue(dtoRequest.getCode())).thenReturn("1-1");
 
         try {
             locationVerificationFactory.getVerificationStrategyList(dtoRequest,Set.of(USER_SCAN_ONETIME_CODE));

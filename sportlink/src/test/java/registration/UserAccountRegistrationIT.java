@@ -5,11 +5,15 @@ import com.sportlink.sportlink.account.account.ACCOUNT_STATUS;
 import com.sportlink.sportlink.account.account.Account;
 import com.sportlink.sportlink.account.account.AccountService;
 import com.sportlink.sportlink.account.company.CompanyAccount;
+import com.sportlink.sportlink.account.device.LocationDevice;
 import com.sportlink.sportlink.account.user.UserAccountService;
 import com.sportlink.sportlink.consent.ConsentService;
 import com.sportlink.sportlink.consent.DTO_Consent;
+import com.sportlink.sportlink.location.I_LocationRepository;
+import com.sportlink.sportlink.location.Location;
 import com.sportlink.sportlink.redis.RedisService;
 import com.sportlink.sportlink.registration.DTO_CompanyRegistration;
+import com.sportlink.sportlink.registration.DTO_DeviceRegistration;
 import com.sportlink.sportlink.registration.RegistrationPayload;
 import com.sportlink.sportlink.registration.RegistrationService;
 import com.sportlink.sportlink.security.EncryptionUtil;
@@ -58,6 +62,9 @@ public class UserAccountRegistrationIT {
 
     @Spy
     private EmailSender emailSender;
+
+    @Autowired
+    private I_LocationRepository locationRepository;
 
     @BeforeEach
     void setUp() {
@@ -167,5 +174,41 @@ public class UserAccountRegistrationIT {
 
         CompanyAccount companyAccount = (CompanyAccount) account.get();
         assertEquals(companyAccount.getStatus(), ACCOUNT_STATUS.NOT_APPROVED);
+    }
+
+    @Test
+    public void testRegisterLocationDevice_Success() {
+        // Arrange
+        DTO_DeviceRegistration registrationData = new DTO_DeviceRegistration();
+        registrationData.setLoginEmail("locationdevice@example.com");
+        registrationData.setUsername("locationDeviceUser");
+        registrationData.setPassword("securePassword123");
+
+        // Create and save a location with an issuer account
+        CompanyAccount issuer = new CompanyAccount();
+        issuer.setLoginEmail("issuer@example.com");
+        issuer.setUsername("issuerUser");
+        issuer.setPassword(passwordEncoder.encode("issuerPass"));
+        accountService.save(issuer);
+
+        Location location = new Location();
+        location.setIssuer(issuer);
+        locationRepository.save(location);
+
+        registrationData.setLocationId(location.getId());
+
+        // Act
+        registrationService.registerLocationDevice(registrationData, issuer.getId());
+
+        // Assert
+        Optional<Account> registeredDevice = accountService.findAccountByEmail("locationdevice@example.com");
+        assertTrue(registeredDevice.isPresent());
+        assertTrue(registeredDevice.get() instanceof LocationDevice);
+
+        LocationDevice locationDevice = (LocationDevice) registeredDevice.get();
+        assertEquals(locationDevice.getLoginEmail(), registrationData.getLoginEmail());
+        assertEquals(locationDevice.getUsername(), registrationData.getUsername());
+        assertNotEquals(locationDevice.getPassword(), registrationData.getPassword()); // Should be encrypted
+        assertEquals(locationDevice.getLocation().getId(), location.getId());
     }
 }

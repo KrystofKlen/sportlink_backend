@@ -1,5 +1,6 @@
 package com.sportlink.sportlink.registration;
 
+import com.sportlink.sportlink.security.SecurityUtils;
 import com.sportlink.sportlink.utils.EmailSender;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
@@ -16,6 +17,7 @@ public class RegistrationController {
 
     private final RegistrationService registrationService;
     private final EmailSender emailSender;
+    private final SecurityUtils securityUtils;
 
     @PostMapping("/start-user-registration")
     @PreAuthorize("permitAll()")
@@ -56,4 +58,15 @@ public class RegistrationController {
         }
     }
 
+    @PostMapping("/location-device")
+    @PreAuthorize("hasAnyRole('COMPANY')")
+    public ResponseEntity<String> registerLocationDevice(@RequestBody DTO_DeviceRegistration registrationData) {
+        try {
+            Long accountId = SecurityUtils.getCurrentAccountId();
+            registrationService.registerLocationDevice(registrationData, accountId);
+            return ResponseEntity.ok("Location device registered successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
 }

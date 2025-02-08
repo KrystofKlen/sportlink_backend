@@ -58,11 +58,24 @@ public class LocationVerificationFactory {
                         throw new EntityNotFoundException();
                     }
 
-                    CodeScanContext codeScanContext = new CodeScanContext();
-                    codeScanContext.setEntityIdExpected( Long.parseLong(data) );
-                    codeScanContext.setEntityIdScanned( dto_location_verification_request.getUserId() );
+                    String[] parts = data.split("-");
+                    if (parts.length != 2) {
+                        throw new IllegalArgumentException("Invalid data format in Redis: " + data);
+                    }
 
-                    verificationStrategies.add(new ScanningCode(codeScanContext));
+                    long expectedUserId = Long.parseLong(parts[0]);
+                    long expectedLocationId = Long.parseLong(parts[1]);
+
+                    CodeScanContext cmpUserId = new CodeScanContext();
+                    cmpUserId.setEntityIdExpected( expectedUserId );
+                    cmpUserId.setEntityIdScanned( dto_location_verification_request.getUserId() );
+
+                    CodeScanContext cmpLocationId = new CodeScanContext();
+                    cmpLocationId.setEntityIdExpected( expectedLocationId );
+                    cmpLocationId.setEntityIdScanned( expectedLocationId );
+
+                    verificationStrategies.add(new ScanningCode(cmpUserId));
+                    verificationStrategies.add(new ScanningCode(cmpLocationId));
                 }
                 case ONE_VISIT_PER_DAY -> {
                     List<Visit> visits = visitRepository.findVisitsByVisitorToday(dto_location_verification_request.getUserId());

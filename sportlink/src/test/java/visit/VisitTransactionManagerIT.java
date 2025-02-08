@@ -3,8 +3,10 @@ package visit;
 import com.sportlink.sportlink.SportlinkApplication;
 import com.sportlink.sportlink.account.account.I_AccountRepository;
 import com.sportlink.sportlink.account.company.CompanyAccount;
+import com.sportlink.sportlink.account.device.LocationDevice;
 import com.sportlink.sportlink.account.user.UserAccount;
 import com.sportlink.sportlink.account.user.UserAccountService;
+import com.sportlink.sportlink.codes.CodesService;
 import com.sportlink.sportlink.currency.Currency;
 import com.sportlink.sportlink.currency.I_CurrencyRepository;
 import com.sportlink.sportlink.location.I_LocationRepository;
@@ -71,6 +73,8 @@ class VisitTransactionManagerIT {
     private Reward r1, r2;
     @Mock
     private I_AccountRepository mockAccountRepository;
+    @Autowired
+    private CodesService codesService;
 
     @BeforeEach
     void setUp() {
@@ -117,6 +121,31 @@ class VisitTransactionManagerIT {
         request.setUserLongitude(-73.9);
         request.setLocationLatitude(40.8);
         request.setLocationLongitude(-73.9);
+    }
+
+    @Test
+    void testLocationOTPOpen(){
+        location.getVerificationStrategies().add(LOCATION_VERIFICATION_STRATEGY.USER_SCAN_ONETIME_CODE);
+        location = locationRepository.save(location);
+
+        LocationDevice device = new LocationDevice();
+        device.setLoginEmail("x");
+        device.setUsername("device");
+        device.setLocation(location);
+        device = accountRepository.save(device);
+
+        String code = codesService.establishLocationOTP(visitor.getId(), device.getId());
+        request.setCode(code);
+        request.setUserId(visitor.getId());
+        RESULT_CODE result = visitTransactionManager.openVisit(visitor, request);
+
+        assertEquals(RESULT_CODE.VISIT_OPENED, result);
+        assertEquals(1, visitRepository.count());
+
+        Visit savedVisit = visitRepository.findAll().get(0);
+        assertEquals(VisitState.OPEN, savedVisit.getState());
+        assertEquals(visitor.getUsername(), savedVisit.getVisitor().getUsername());
+        assertEquals(location.getLatitude(), savedVisit.getLocation().getLatitude());
     }
 
     @Test
