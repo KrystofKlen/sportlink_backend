@@ -103,10 +103,9 @@ public class AccountController {
     public ResponseEntity<Void> changePassword(
             @PathVariable String token,
             @RequestParam String otp,
-            @RequestParam String newPassword,
-            @RequestParam String loginEmail) {
+            @RequestParam String newPassword) {
 
-        boolean result = accountService.changePassword(token, otp, newPassword, loginEmail);
+        boolean result = accountService.changePassword(token, otp, newPassword);
         if (result) {
             return ResponseEntity.ok().build();
         } else {

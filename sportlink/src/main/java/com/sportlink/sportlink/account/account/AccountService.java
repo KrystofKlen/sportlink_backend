@@ -67,11 +67,13 @@ public class AccountService {
     }
 
     @Transactional
-    public boolean changePassword(String userToken, String otp, String newPassword, String loginEmail) {
+    public boolean changePassword(String userToken, String otp, String newPassword) {
         String expectedOTP = redisService.getValue(userToken);
         if (!expectedOTP.equals(otp)) {
             return false;
         }
+
+        String loginEmail = redisService.getValue(otp);
 
         Optional<Account> account = accountRepository.findByEmail(loginEmail);
         if (account.isEmpty()) {

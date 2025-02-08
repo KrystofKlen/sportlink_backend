@@ -30,13 +30,13 @@ public class CodesController {
 
     @PutMapping("/otp-passwd-reset")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<String> requestPasswordResetOTP(@RequestParam long userId) {
+    public ResponseEntity<String> requestPasswordResetOTP(@RequestParam String accountEmail) {
         try {
-            String token = codesService.sendCodeForOTP(userId);
+            String token = codesService.sendCodeForOTP(accountEmail);
             return new ResponseEntity<>(token, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

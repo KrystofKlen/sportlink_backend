@@ -42,13 +42,14 @@ public class CodesService {
     }
 
     // returns token to be used in link for password reset
-    public String sendCodeForOTP(Long accountId) throws Exception {
-        Account acc = accountRepository.findById(accountId).orElseThrow();
+    public String sendCodeForOTP(String accountEmail) throws Exception {
+        Account acc = accountRepository.findByEmail(accountEmail).orElseThrow();
         String email = acc.getLoginEmail();
         String otp = EncryptionUtil.generateRandomSequence(10);
         emailSender.sendOtpPasswordChangeEmail(email, otp);
         String token = EncryptionUtil.generateRandomSequence(30);
         redisService.saveValueWithExpiration(token, otp, 2);
+        redisService.saveValueWithExpiration(otp, accountEmail, 2);
         log.info("Send code for OTP code: " + otp + " token: " + token);
         return token;
     }

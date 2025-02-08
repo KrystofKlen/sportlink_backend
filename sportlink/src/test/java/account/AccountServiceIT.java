@@ -68,13 +68,14 @@ public class AccountServiceIT {
         String newPassword = "newPassword123";
 
         redisService.saveValueWithExpiration(userToken, otp, 1); // Simulating OTP storage
+        redisService.saveValueWithExpiration(otp, email,1);
 
         Account account = new Account();
         account.setLoginEmail(email);
         account.setPassword("oldPassword123");
         accountRepository.save(account);
 
-        boolean passwordChanged = accountService.changePassword(userToken, otp, newPassword, email);
+        boolean passwordChanged = accountService.changePassword(userToken, otp, newPassword);
         assertTrue(passwordChanged);
 
         Optional<Account> updatedAccount = accountService.findAccountByEmail(email);

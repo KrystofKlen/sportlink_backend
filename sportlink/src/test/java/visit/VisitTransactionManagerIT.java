@@ -79,7 +79,7 @@ class VisitTransactionManagerIT {
     @BeforeEach
     void setUp() {
         visitor = new UserAccount();
-        visitor.setUsername("testUser");
+        visitor.setUsername("test_user");
         visitor.setBalance(new java.util.HashMap<>());
         visitor = accountRepository.save(visitor);
 

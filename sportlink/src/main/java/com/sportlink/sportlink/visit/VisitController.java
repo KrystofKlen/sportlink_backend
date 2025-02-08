@@ -133,7 +133,7 @@ public class VisitController {
         }
     }
 
-    @PostMapping("/close")
+    @PostMapping("/cancel")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> cancelVisit() {
         Long userId = SecurityUtils.getCurrentAccountId();
