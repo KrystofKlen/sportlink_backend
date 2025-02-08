@@ -132,4 +132,12 @@ public class VisitController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    @PostMapping("/close")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Void> cancelVisit() {
+        Long userId = SecurityUtils.getCurrentAccountId();
+        visitService.cancelVisit(userId);
+        return ResponseEntity.ok().build();
+    }
 }

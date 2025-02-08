@@ -81,4 +81,16 @@ public class VisitService {
 
         return Optional.of(visitRepository.save(last));
     }
+
+    @Transactional
+    public void cancelVisit(Long userId){
+        Optional<Visit> optVisit = visitRepository.getLastByVisitorId(userId);
+        if(optVisit.isEmpty()){
+            return;
+        }
+        Visit visit = optVisit.get();
+        visit.setState(VisitState.CANCELLED);
+        visit = visitRepository.save(visit);
+        log.info("Visit cancelled: Id = " + visit.getVisitId() + " userId = " + userId);
+    }
 }
