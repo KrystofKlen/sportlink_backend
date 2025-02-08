@@ -44,6 +44,11 @@ public class RedisService {
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));
     }
 
+
+    public String getPasswdResetRecordKey(String loginEmail) {
+        return "PASSWD-"+loginEmail;
+    }
+
     public void clearAll() {
         redisTemplate.getConnectionFactory().getConnection().flushDb();
     }

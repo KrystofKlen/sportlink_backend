@@ -40,6 +40,8 @@ public class AccountService {
     private final DTO_Adapter adapter;
     private final ImgService imgService;
 
+    public final static int PASSWD_RESET_MINUTES_BAN = 30;
+
     // Create or Update UserAccount
     @Transactional
     public Account save(Account account) {
@@ -72,8 +74,17 @@ public class AccountService {
         if (!expectedOTP.equals(otp)) {
             return false;
         }
+        redisService.deleteValue(userToken);
 
         String loginEmail = redisService.getValue(otp);
+        redisService.deleteValue(otp);
+
+        String record = redisService.getPasswdResetRecordKey(loginEmail);
+        boolean hasRecord = redisService.hasKey(record);
+        if (hasRecord) {
+            return false;
+        }
+        redisService.saveValueWithExpiration(record,"ban",PASSWD_RESET_MINUTES_BAN);
 
         Optional<Account> account = accountRepository.findByEmail(loginEmail);
         if (account.isEmpty()) {

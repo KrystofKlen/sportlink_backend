@@ -32,10 +32,13 @@ public class CodesController {
     @PreAuthorize("permitAll()")
     public ResponseEntity<String> requestPasswordResetOTP(@RequestParam String accountEmail) {
         try {
+            boolean isEligible = codesService.isEligibleForPasswordReset(accountEmail);
+            if (!isEligible) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
             String token = codesService.sendCodeForOTP(accountEmail);
             return new ResponseEntity<>(token, HttpStatus.OK);
         } catch (Exception e) {
-            e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

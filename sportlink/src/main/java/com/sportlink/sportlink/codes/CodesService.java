@@ -41,6 +41,10 @@ public class CodesService {
         return code;
     }
 
+    public boolean isEligibleForPasswordReset(String accountEmail) {
+        return redisService.hasKey( redisService.getPasswdResetRecordKey(accountEmail) );
+    }
+
     // returns token to be used in link for password reset
     public String sendCodeForOTP(String accountEmail) throws Exception {
         Account acc = accountRepository.findByEmail(accountEmail).orElseThrow();
