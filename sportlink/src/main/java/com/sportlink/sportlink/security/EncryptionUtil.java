@@ -23,7 +23,7 @@ public class EncryptionUtil {
             byte[] decodedKey = Base64.getDecoder().decode(secretKeyString);
             secretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, ALGORITHM);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Failed to decode secretKeyString", e);
+            throw new IllegalArgumentException("Failed to decode secretKeyString");
         }
     }
 
