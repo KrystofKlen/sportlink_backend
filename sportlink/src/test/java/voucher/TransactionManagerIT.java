@@ -49,7 +49,6 @@ class TransactionManagerIT {
         companyAccount.setName("company");
         companyAccount = accountRepository.save(companyAccount);
 
-
         Currency currency = new Currency();
         currency.setName("TEST");
         currency.setIssuer(companyAccount);
@@ -67,7 +66,8 @@ class TransactionManagerIT {
         HashMap<Currency, Integer> balance = new HashMap<>();
         balance.put(currency, 200);
         testUserAccount = new UserAccount();
-        testUserAccount.setUsername("testUser");
+        testUserAccount.setUsername("testUser1");
+        testUserAccount.setLoginEmail("testUser1");
         testUserAccount.setBalance(balance);
         testUserAccount = accountRepository.save(testUserAccount);
     }

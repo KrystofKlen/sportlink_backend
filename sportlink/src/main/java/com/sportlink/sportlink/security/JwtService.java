@@ -28,24 +28,18 @@ public class JwtService {
 
     @Value("${jwt.key}")
     private String secretKey;
-    public static final Long ACCESS_TOKEN_EXP = TimeUnit.HOURS.toMillis(1L);
-    public static final Long REFRESH_TOKEN_EXP = TimeUnit.DAYS.toMillis(20);
-
-    public Long getUserIdFromToken(HttpServletRequest request) throws NumberFormatException, ExpiredJwtException {
-        String jwt = getJwtFromRequest(request);
-        return extractClaim(jwt, claims -> claims.get("userID", Long.class));
-    }
-
-    public String getJwtFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
-    }
+    public static final Long ACCESS_TOKEN_STANDARD_EXP = TimeUnit.HOURS.toMillis(1);
+    public static final Long REFRESH_TOKEN_STANDARD_EXP = TimeUnit.DAYS.toMillis(20);
+    public static final Long ACCESS_TOKEN_ADMIN_EXP = TimeUnit.MINUTES.toMillis(5);
+    public static final Long ACCESS_TOKEN_DEVICE_EXP = TimeUnit.DAYS.toMillis(1);
+    public static final Long REFRESH_TOKEN_DEVICE_EXP = TimeUnit.DAYS.toMillis(30);
 
     public String extractUsername(String jwt) throws ExpiredJwtException {
         return extractClaim(jwt, Claims::getSubject);
+    }
+
+    public String extractTokenType(String jwt) throws ExpiredJwtException {
+        return extractClaim(jwt, claims -> claims.get("token_type", String.class));
     }
 
     public <T> T extractClaim(String jwt, Function<Claims, T> claimsResolver) throws ExpiredJwtException{
@@ -53,7 +47,7 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(DTO_Account account, Long exp){
+    public String generateToken(DTO_Account account, TOKEN_TYPE type) {
         Map<String, Object> claims = new HashMap<>();
         List<String> roles = account
                 .getAuthorities()
@@ -62,10 +56,41 @@ public class JwtService {
                 .collect(Collectors.toList());
         claims.put("roles", roles);
         claims.put("accountId", account.getId());
-        return generateToken(claims, account, exp);
+        claims.put("token_type", type.toString());
+
+        switch (type){
+            case ACCESS: return generateAccessToken(claims, account);
+            case REFRESH: return generateRefreshToken(claims, account);
+            default: throw  new IllegalArgumentException();
+        }
     }
 
-    public String generateToken( Map<String, Object> extraClaims,  DTO_Account account, Long expirationTime) {
+    public String generateAccessToken(Map<String, Object> claims,  DTO_Account account){
+        ROLE role = account.getRole();
+
+        if(role.equals(ROLE.ROLE_USER) || role.equals(ROLE.ROLE_COMPANY)){
+            return buildToken(claims, account, ACCESS_TOKEN_STANDARD_EXP);
+        } else if (role.equals(ROLE.ROLE_ADMIN)) {
+            return buildToken(claims, account, ACCESS_TOKEN_ADMIN_EXP);
+        } else if (role.equals(ROLE.ROLE_LOCATION_DEVICE)){
+            return buildToken(claims, account, ACCESS_TOKEN_DEVICE_EXP);
+        } else {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    public String generateRefreshToken(Map<String, Object> claims,  DTO_Account account){
+        ROLE role = account.getRole();
+        if (role.equals(ROLE.ROLE_LOCATION_DEVICE)){
+            return buildToken(claims, account, REFRESH_TOKEN_DEVICE_EXP);
+        } else if(role.equals(ROLE.ROLE_USER) || role.equals(ROLE.ROLE_COMPANY)) {
+            return buildToken(claims, account, REFRESH_TOKEN_STANDARD_EXP);
+        } else {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    public String buildToken(Map<String, Object> extraClaims, DTO_Account account, Long expirationTime) {
         return Jwts
                 .builder()
                 .setId(account.getId().toString())
@@ -77,11 +102,27 @@ public class JwtService {
                 .compact();
     }
 
-    public boolean isTokenValid(String jwt, UserDetails userDetails){
+    public boolean isTokenValid(String jwt, UserDetails userDetails, TOKEN_TYPE expectedType){
         try {
+            // username
             final String username = extractUsername(jwt);
             boolean usernameOK = username.equals(userDetails.getUsername());
-            return usernameOK && !isTokenExpired(jwt);
+            if(!usernameOK){
+                return false;
+            }
+            // token expiration
+            boolean tokenExpired = isTokenExpired(jwt);
+            if(tokenExpired){
+                return false;
+            }
+            // token type matches
+            String tokenType = extractTokenType(jwt);
+            boolean typeOK =  tokenType.equals(expectedType.toString());
+            if(!typeOK){
+                return false;
+            }
+
+            return true;
         }catch (Exception e){
             return false;
         }
@@ -93,11 +134,6 @@ public class JwtService {
 
     public Date extractExpiration(String jwt) {
         return extractClaim(jwt, Claims::getExpiration);
-    }
-
-    public List<ROLE> extractRoles(String jwt) {
-        Claims claims = extractAllClaims(jwt);
-        return claims.get("roles", List.class);
     }
 
     private Claims extractAllClaims(String jwt) throws ExpiredJwtException {

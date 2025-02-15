@@ -5,6 +5,7 @@ import com.sportlink.sportlink.account.ROLE;
 import com.sportlink.sportlink.account.account.*;
 import com.sportlink.sportlink.security.EncryptionUtil;
 import com.sportlink.sportlink.security.JwtService;
+import com.sportlink.sportlink.security.TOKEN_TYPE;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +57,20 @@ public class AuthServiceIT {
     }
 
     @Test
+    void testRefreshAndAccessToken() {
+        DTO_Account dto = adapter.getDTO_Account(account);
+        String access = jwtService.generateToken(dto, TOKEN_TYPE.ACCESS);
+        String refresh = jwtService.generateToken(dto, TOKEN_TYPE.REFRESH);
+        assertNotNull(access);
+        assertNotNull(refresh);
+        assertTrue( jwtService.isTokenValid(access, dto, TOKEN_TYPE.ACCESS));
+        assertTrue( jwtService.isTokenValid(refresh, dto, TOKEN_TYPE.REFRESH));
+        assertFalse( jwtService.isTokenValid(access,dto,TOKEN_TYPE.REFRESH) );
+        assertFalse( jwtService.isTokenValid(refresh,dto,TOKEN_TYPE.ACCESS) );
+    }
+
+
+    @Test
     void testLogin_successfulWithUsername() {
         DTO_LoginResponse response = authService.login("testUser", "testPassword");
         // Assert
@@ -93,7 +109,7 @@ public class AuthServiceIT {
     @Test
     void testGetNewAccessToken_successful() {
         DTO_Account dtoAccount = adapter.getDTO_Account(account);
-        String refreshToken = jwtService.generateToken(dtoAccount, JwtService.REFRESH_TOKEN_EXP);
+        String refreshToken = jwtService.generateToken(dtoAccount, TOKEN_TYPE.REFRESH);
         // Act: Generate a new access token
         String newAccessToken = authService.getNewAccessToken(account.getId(), refreshToken);
         // Assert
@@ -119,9 +135,10 @@ public class AuthServiceIT {
         accountRepository.save(adminAccount);
 
         DTO_Account dtoAccount = adapter.getDTO_Account(adminAccount);
-        String refreshToken = jwtService.generateToken(dtoAccount, JwtService.REFRESH_TOKEN_EXP);
+        assertThrows(IllegalArgumentException.class, () -> jwtService.generateToken(dtoAccount, TOKEN_TYPE.REFRESH));
+        String accessToken = jwtService.generateToken(dtoAccount, TOKEN_TYPE.ACCESS);
 
         // Act & Assert: Refresh token usage should not be allowed for admin accounts
-        assertThrows(IllegalArgumentException.class, () -> authService.getNewAccessToken(adminAccount.getId(), refreshToken));
+        assertThrows(IllegalArgumentException.class, () -> authService.getNewAccessToken(adminAccount.getId(), accessToken));
     }
 }

@@ -1,7 +1,7 @@
 package com.sportlink.sportlink.account.account;
 
-import com.sportlink.sportlink.account.ROLE;
 import com.sportlink.sportlink.security.JwtService;
+import com.sportlink.sportlink.security.TOKEN_TYPE;
 import com.sportlink.sportlink.utils.DTO_Adapter;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,14 +43,11 @@ public class AuthService {
         authenticationManager.authenticate(auth);
 
         DTO_LoginResponse loginResponse = new DTO_LoginResponse();
-        String access = jwtService.generateToken(dto, JwtService.ACCESS_TOKEN_EXP);
+        String access = jwtService.generateToken(dto, TOKEN_TYPE.ACCESS);
+        String refresh = jwtService.generateToken(dto, TOKEN_TYPE.REFRESH);
+
         loginResponse.setAccessToken(access);
-
-        if( ! dto.getRole().equals(ROLE.ROLE_ADMIN)){
-            String refresh = jwtService.generateToken(dto,JwtService.REFRESH_TOKEN_EXP);
-            loginResponse.setRefreshToken(refresh);
-        }
-
+        loginResponse.setRefreshToken(refresh);
         loginResponse.setAccountId(dto.getId());
 
         SecurityContextHolder.getContext().setAuthentication(auth);
@@ -61,21 +58,13 @@ public class AuthService {
     }
 
     public String getNewAccessToken(Long accountId, String refreshToken) throws IllegalArgumentException{
-
         Account acc = accountRepository.findById(accountId).orElseThrow();
-
-        if (acc.getRole().equals(ROLE.ROLE_ADMIN)){
-            // refresh token not allowed for admin
-            throw new IllegalArgumentException();
-        }
-
         DTO_Account dtoAccount = adapter.getDTO_Account(acc);
-
-        if (! jwtService.isTokenValid(refreshToken, dtoAccount)) {
+        if (! jwtService.isTokenValid(refreshToken, dtoAccount, TOKEN_TYPE.REFRESH)) {
             throw new IllegalArgumentException();
         }
 
         // Generate a new access token
-        return jwtService.generateToken(dtoAccount, JwtService.ACCESS_TOKEN_EXP);
+        return jwtService.generateToken(dtoAccount, TOKEN_TYPE.ACCESS);
     }
 }

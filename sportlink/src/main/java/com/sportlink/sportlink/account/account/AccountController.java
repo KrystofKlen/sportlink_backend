@@ -156,7 +156,7 @@ public class AccountController {
     }
 
     @PostMapping("/refresh-token")
-    @PreAuthorize("hasAnyRole('USER','COMPANY')")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<String> refreshToken(@RequestParam String refreshToken){
         try {
             // Check if the refresh token is valid and not expired

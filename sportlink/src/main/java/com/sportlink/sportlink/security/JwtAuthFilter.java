@@ -62,7 +62,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 return;
             }
             UserDetails userDetails = optAccount.get();
-            boolean tokenValid = jwtService.isTokenValid(jwt, userDetails);
+            boolean tokenValid = jwtService.isTokenValid(jwt, userDetails, TOKEN_TYPE.ACCESS);
 
             if(!tokenValid){
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
