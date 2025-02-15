@@ -10,8 +10,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 public class EncryptionConfig {
 
-    private static final int SALT_LENGTH = 16;
-
     @Value("${voucher.key}")
     private String secretKeyString;
 
