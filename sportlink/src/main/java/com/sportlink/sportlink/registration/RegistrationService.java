@@ -28,7 +28,6 @@ import java.util.Optional;
 @Slf4j
 public class RegistrationService {
 
-    private final EncryptionUtil.SaltGenerator saltGenerator;
     private final PasswordEncoder passwordEncoder;
     private final I_CurrencyRepository currencyRepository;
     private final RedisService redisService;
@@ -43,9 +42,7 @@ public class RegistrationService {
             throw new IllegalStateException("User account already exists");
         }
 
-        // salt passwd
-        String salt = saltGenerator.generateSalt();
-        String passwd = passwordEncoder.encode(registrationData.getPassword() + salt);
+        String passwd = passwordEncoder.encode(registrationData.getPassword());
         registrationData.setPassword(passwd);
 
         // store otp and registration data into redis
@@ -95,8 +92,7 @@ public class RegistrationService {
             throw new IllegalStateException("User account already exists");
         }
 
-        String salt = saltGenerator.generateSalt();
-        String passwd = passwordEncoder.encode(registrationData.getPassword() + salt);
+        String passwd = passwordEncoder.encode(registrationData.getPassword());
 
         // create not approved account
         CompanyAccount companyAccount = new CompanyAccount(

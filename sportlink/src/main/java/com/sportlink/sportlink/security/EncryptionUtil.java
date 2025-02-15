@@ -42,22 +42,6 @@ public class EncryptionUtil {
         return new String(decryptedBytes);
     }
 
-    // SaltGenerator class can be an inner static class or a separate class
-    public static class SaltGenerator {
-        private final int saltLength;
-
-        public SaltGenerator(int saltLength) {
-            this.saltLength = saltLength;
-        }
-
-        public String generateSalt() {
-            SecureRandom random = new SecureRandom();
-            byte[] saltBytes = new byte[saltLength];
-            random.nextBytes(saltBytes);
-            return Base64.getEncoder().encodeToString(saltBytes);
-        }
-    }
-
     public static String generateRandomSequence(int length){
         final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         SecureRandom random = new SecureRandom();

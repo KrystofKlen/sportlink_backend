@@ -35,7 +35,6 @@ public class AccountService {
 
     public final I_AccountRepository accountRepository;
     private final RedisService redisService;
-    private final EncryptionUtil.SaltGenerator saltGenerator;
     private final PasswordEncoder passwordEncoder;
     private final DTO_Adapter adapter;
     private final ImgService imgService;

@@ -52,9 +52,6 @@ public class UserAccountRegistrationIT {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private EncryptionUtil.SaltGenerator saltGenerator;
-
-    @Autowired
     private AccountService accountService;
 
     @Autowired

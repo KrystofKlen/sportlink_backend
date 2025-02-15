@@ -31,9 +31,6 @@ public class RegistrationServiceUT {
     private AccountService accountService;
 
     @Mock
-    private EncryptionUtil.SaltGenerator saltGenerator;
-
-    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock

@@ -34,9 +34,6 @@ public class AccountServiceIT {
     @Autowired
     private RedisService redisService;
 
-    @Autowired
-    private EncryptionUtil.SaltGenerator saltGenerator;
-
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach

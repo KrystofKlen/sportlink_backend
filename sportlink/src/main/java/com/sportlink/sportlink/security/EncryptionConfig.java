@@ -24,9 +24,4 @@ public class EncryptionConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-    @Bean
-    public EncryptionUtil.SaltGenerator saltGenerator() {
-        return new EncryptionUtil.SaltGenerator(SALT_LENGTH);
-    }
 }
