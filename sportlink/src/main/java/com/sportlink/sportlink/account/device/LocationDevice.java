@@ -5,9 +5,11 @@ import com.sportlink.sportlink.account.account.Account;
 import com.sportlink.sportlink.location.Location;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class LocationDevice extends Account {
     @OneToOne
     Location location;

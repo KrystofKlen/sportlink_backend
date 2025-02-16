@@ -14,7 +14,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class Reward {
 
     @Id
