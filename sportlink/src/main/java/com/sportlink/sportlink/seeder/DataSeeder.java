@@ -131,6 +131,8 @@ public class DataSeeder implements CommandLineRunner {
                     null,
                     "Location " + i,
                     "Address " + i,
+                    "150 kc hodina",
+                    "+420 702 876 546",
                     "Description for Location " + i,
                     activities,
                     Math.random() * 180 - 90,

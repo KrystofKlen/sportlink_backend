@@ -27,6 +27,10 @@ public class DTO_Location {
     @NotNull
     private String address;
 
+    private String price;
+
+    private String contact;
+
     @NotNull
     private String description;
 

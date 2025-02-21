@@ -67,6 +67,8 @@ public class DTO_Adapter {
                 location.getId(),
                 location.getName(),
                 location.getAddress(),
+                location.getPrice(),
+                location.getContact(),
                 location.getDescription(),
                 location.getActivities(),
                 location.getLongitude(),

@@ -23,6 +23,8 @@ public class Location {
 
     private String name;
     private String address;
+    private String price;
+    private String contact;
     private String description;
 
     @ElementCollection(fetch = FetchType.EAGER)
