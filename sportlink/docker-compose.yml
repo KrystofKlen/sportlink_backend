@@ -15,7 +15,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: sportlink_backend
+    container_name: krystofklen/sportlink_backend
     depends_on:
       - db
     environment:
