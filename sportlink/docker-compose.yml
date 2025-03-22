@@ -15,7 +15,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: krystofklen/sportlink_backend
+    container_name: sportlink_backend
     depends_on:
       - db
     environment:
@@ -23,8 +23,9 @@ services:
       SPRING_DATASOURCE_USERNAME: tester
       SPRING_DATASOURCE_PASSWORD: 1234
       PROFILE: seeder
+      SSL_PASSWORD: sportlink
     ports:
-      - "8080:8080"
+      - "8443:8443"
     networks:
       - sportlink_network
 

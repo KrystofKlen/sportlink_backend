@@ -19,7 +19,7 @@ COPY src src
 RUN ./gradlew build -x test
 
 # Expose the application port
-EXPOSE 8080
+EXPOSE 8443
 
 # Command to run the application
 CMD ["./gradlew", "bootRun"]
