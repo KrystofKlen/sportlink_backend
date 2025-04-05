@@ -99,7 +99,7 @@ public class AccountController {
     }
 
     @PatchMapping("/password/{token}")
-    @PreAuthorize("hasAnyRole('ADMIN','COMPANY','USER')")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Void> changePassword(
             @PathVariable String token,
             @RequestParam String otp,
