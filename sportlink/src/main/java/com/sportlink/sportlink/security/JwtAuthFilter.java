@@ -35,7 +35,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String username;
 
         if(authHeader == null || !authHeader.startsWith("Bearer ")){
-            // leave authentication to methods guarded with @PreAuthorize
+            // leave authentication to methods guarded with @PreAuthorize -> no auth attempt made
+            // public endpoints reachable, but those which require auth not
             filterChain.doFilter(request, response);
             return; // Stop further processing
         }
