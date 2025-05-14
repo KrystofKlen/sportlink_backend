@@ -12,9 +12,7 @@ services:
       - sportlink_network
 
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: krystofklen/sportlink-backend:latest
     container_name: sportlink_backend
     depends_on:
       - db
